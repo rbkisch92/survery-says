@@ -47,7 +47,7 @@ DEFAULT_QUESTIONS = [
     },
 ]
 
-APP_TITLE = "Baby Family Feud"
+APP_TITLE = "Baby  Family  Feud"
 FAST_MONEY_SECONDS = 25
 FUZZY_MATCH_THRESHOLD = 0.78
 
@@ -368,7 +368,7 @@ def render_css():
     <style>
     """ + custom_font_css + """
     .stApp { background: radial-gradient(circle at top, #fff6fa 0%, #f8d9e4 45%, #eeb2c9 100%); }
-    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:200px; font-weight:400; color:#7b2348; text-shadow:2px 2px 0 #fff, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:8px; }
+    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:200px; font-weight:400; color:#7b2348; text-shadow:2px 2px 0 #fff, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:1px; }
     .subtitle { text-align:center; font-size:22px; color:#7b2348; font-weight:800; margin-bottom:22px; }
     .board { background:linear-gradient(180deg,#9d3260,#52122f); color:white; border:8px solid #ffd5e4; border-radius:34px; padding:26px; font-size:34px; font-weight:900; text-align:center; box-shadow:0 12px 28px rgba(80,20,50,.35); margin:18px 0; }
     .answer-revealed { background:linear-gradient(180deg,#fff8fb,#f7c7d9); color:#5c1435; border:5px solid #7b2348; border-radius:22px; padding:18px; font-size:26px; font-weight:900; margin:10px 0; display:flex; justify-content:space-between; }
