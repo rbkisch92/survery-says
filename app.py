@@ -47,7 +47,7 @@ DEFAULT_QUESTIONS = [
     },
 ]
 
-APP_TITLE = "Baby  Family  Feud"
+APP_TITLE = "Baby    Family    Feud"
 FAST_MONEY_SECONDS = 25
 FUZZY_MATCH_THRESHOLD = 0.78
 
