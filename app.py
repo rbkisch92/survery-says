@@ -6,6 +6,8 @@ import os
 import random
 import time
 import html
+import base64
+from pathlib import Path
 from difflib import SequenceMatcher
 
 st.set_page_config(page_title="Baby in Bloom Feud", layout="wide")
@@ -45,7 +47,7 @@ DEFAULT_QUESTIONS = [
     },
 ]
 
-APP_TITLE = "🌸 Baby in Bloom Feud 🌸"
+APP_TITLE = "Baby Family Feud"
 FAST_MONEY_SECONDS = 25
 FUZZY_MATCH_THRESHOLD = 0.78
 
@@ -339,17 +341,40 @@ def advance_to_next_match_or_round(state):
     state["message"] = f"Bracket Round {state['bracket_round']} started."
 
 
+def get_custom_font_css():
+    """Load SophiaRonald.ttf from the same folder as app.py for the title font.
+    If the font file is missing, the app still works with a cursive fallback.
+    """
+    font_path = Path(__file__).with_name("SophiaRonald.ttf")
+    if not font_path.exists():
+        return ""
+    try:
+        encoded_font = base64.b64encode(font_path.read_bytes()).decode("utf-8")
+        return f"""
+        @font-face {{
+            font-family: 'SophiaRonald';
+            src: url(data:font/truetype;charset=utf-8;base64,{encoded_font}) format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+        """
+    except Exception:
+        return ""
+
+
 def render_css():
+    custom_font_css = get_custom_font_css()
     st.markdown("""
     <style>
+    """ + custom_font_css + """
     .stApp { background: radial-gradient(circle at top, #fff6fa 0%, #f8d9e4 45%, #eeb2c9 100%); }
-    .title { text-align:center; font-size:58px; font-weight:900; color:#fff; text-shadow:3px 3px 0 #7b2348, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:8px; }
+    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:72px; font-weight:400; color:#7b2348; text-shadow:1px 1px 0 #fff, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:8px; }
     .subtitle { text-align:center; font-size:22px; color:#7b2348; font-weight:800; margin-bottom:22px; }
     .board { background:linear-gradient(180deg,#9d3260,#52122f); color:white; border:8px solid #ffd5e4; border-radius:34px; padding:26px; font-size:34px; font-weight:900; text-align:center; box-shadow:0 12px 28px rgba(80,20,50,.35); margin:18px 0; }
     .answer-revealed { background:linear-gradient(180deg,#fff8fb,#f7c7d9); color:#5c1435; border:5px solid #7b2348; border-radius:22px; padding:18px; font-size:26px; font-weight:900; margin:10px 0; display:flex; justify-content:space-between; }
     .answer-hidden { background:linear-gradient(180deg,#7b2348,#3e0d25); color:#ffd5e4; border:5px solid #ffd5e4; border-radius:22px; padding:18px; font-size:30px; font-weight:900; text-align:center; margin:10px 0; }
     .answer-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
-    @media (max-width: 700px) { .answer-grid { grid-template-columns: 1fr; } .answer-revealed, .answer-hidden { margin: 6px 0; font-size: 24px; } }
+    @media (max-width: 700px) { .title { font-size: 52px; line-height: 1.05; } .answer-grid { grid-template-columns: 1fr; } .answer-revealed, .answer-hidden { margin: 6px 0; font-size: 24px; } }
     .card { background:#fff8fb; border:4px solid #7b2348; border-radius:24px; padding:18px; color:#5c1435; font-size:22px; font-weight:900; text-align:center; box-shadow:0 6px 16px rgba(80,20,50,.18); }
     .bracket { background:#fff8fb; border:3px solid #c8658d; border-radius:18px; padding:14px; color:#5c1435; font-weight:800; margin:8px 0; }
     .message { text-align:center; color:#5c1435; font-size:26px; font-weight:900; margin-top:16px; }
