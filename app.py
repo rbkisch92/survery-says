@@ -5,6 +5,7 @@ import json
 import os
 import random
 import time
+import html
 from difflib import SequenceMatcher
 
 st.set_page_config(page_title="Baby in Bloom Feud", layout="wide")
@@ -347,6 +348,8 @@ def render_css():
     .board { background:linear-gradient(180deg,#9d3260,#52122f); color:white; border:8px solid #ffd5e4; border-radius:34px; padding:26px; font-size:34px; font-weight:900; text-align:center; box-shadow:0 12px 28px rgba(80,20,50,.35); margin:18px 0; }
     .answer-revealed { background:linear-gradient(180deg,#fff8fb,#f7c7d9); color:#5c1435; border:5px solid #7b2348; border-radius:22px; padding:18px; font-size:26px; font-weight:900; margin:10px 0; display:flex; justify-content:space-between; }
     .answer-hidden { background:linear-gradient(180deg,#7b2348,#3e0d25); color:#ffd5e4; border:5px solid #ffd5e4; border-radius:22px; padding:18px; font-size:30px; font-weight:900; text-align:center; margin:10px 0; }
+    .answer-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+    @media (max-width: 700px) { .answer-grid { grid-template-columns: 1fr; } .answer-revealed, .answer-hidden { margin: 6px 0; font-size: 24px; } }
     .card { background:#fff8fb; border:4px solid #7b2348; border-radius:24px; padding:18px; color:#5c1435; font-size:22px; font-weight:900; text-align:center; box-shadow:0 6px 16px rgba(80,20,50,.18); }
     .bracket { background:#fff8fb; border:3px solid #c8658d; border-radius:18px; padding:14px; color:#5c1435; font-weight:800; margin:8px 0; }
     .message { text-align:center; color:#5c1435; font-size:26px; font-weight:900; margin-top:16px; }
@@ -450,13 +453,25 @@ def render_main_game(state):
     score_cols[1].markdown(f'<div class="card">Match Q {state["match_question_number"]}/3<br>Bank: {state["round_bank"]}</div>', unsafe_allow_html=True)
     score_cols[2].markdown(f'<div class="card">{right}<br>Match: {match_scores.get(right, 0)}<br>Total: {state["scores"].get(right, 0)}</div>', unsafe_allow_html=True)
 
-    st.markdown(f'<div class="board">{q["question"]}</div>', unsafe_allow_html=True)
-    cols = st.columns(2)
+    st.markdown(f'<div class="board">{html.escape(str(q["question"]))}</div>', unsafe_allow_html=True)
+
+    # Mobile-order fix:
+    # Streamlit columns stack as 1,3,5,2,4,6 on phones.
+    # This CSS grid keeps the visual order as 1,2,3,4,5,6 on mobile
+    # while still showing a two-column board on desktop.
+    answer_tiles = []
     for i, (answer, points) in enumerate(q["answers"]):
         if i in state["revealed"]:
-            cols[i % 2].markdown(f'<div class="answer-revealed"><span>{i+1}. {answer}</span><span>{points}</span></div>', unsafe_allow_html=True)
+            answer_tiles.append(
+                f'<div class="answer-revealed"><span>{i+1}. {html.escape(str(answer))}</span><span>{points}</span></div>'
+            )
         else:
-            cols[i % 2].markdown(f'<div class="answer-hidden">{i+1}</div>', unsafe_allow_html=True)
+            answer_tiles.append(f'<div class="answer-hidden">{i+1}</div>')
+
+    st.markdown(
+        '<div class="answer-grid">' + ''.join(answer_tiles) + '</div>',
+        unsafe_allow_html=True,
+    )
     if state["strikes"]:
         st.markdown(f'<div class="message">{"❌" * state["strikes"]}</div>', unsafe_allow_html=True)
     if state["buzzed"]:
