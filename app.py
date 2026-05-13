@@ -47,7 +47,7 @@ DEFAULT_QUESTIONS = [
     },
 ]
 
-APP_TITLE = "Baby    Family    Feud"
+APP_TITLE = "🌸 Baby in Bloom Feud 🌸"
 FAST_MONEY_SECONDS = 25
 FUZZY_MATCH_THRESHOLD = 0.78
 
@@ -75,10 +75,10 @@ def default_state():
         "champion": "",
         "mode": "signup",
         "fast_money_teams": [],
-        "fast_money_active_team": "",
-        "fast_money_active_player": "Player 1",
+        "fast_money_champion_team": "",
         "fast_money_started_at": None,
         "fast_money_submissions": {},
+        "fast_money_player_scores": {},
         "fast_money_scores": {},
     }
 
@@ -296,16 +296,25 @@ def get_fast_money_finalist_teams(state):
     return teams
 
 
-def start_fast_money_with_teams(state, teams):
-    teams = [t for t in teams if t and t != "BYE"][:2]
+def start_fast_money_for_winning_team(state, winning_team):
+    """Start Fast Money as an individual competition for players on the tournament-winning team."""
+    winning_team = str(winning_team).strip()
     state["mode"] = "fast_money"
-    state["fast_money_teams"] = teams
-    state["fast_money_active_team"] = teams[0] if teams else ""
-    state["fast_money_active_player"] = "Player 1"
+    state["fast_money_champion_team"] = winning_team
+    state["fast_money_teams"] = [winning_team] if winning_team else []
     state["fast_money_started_at"] = None
-    state["fast_money_scores"] = {team: state.get("fast_money_scores", {}).get(team, 0) for team in teams}
     state["fast_money_submissions"] = {}
-    state["message"] = "Fast Money is ready. Players can sign in from their phones."
+    state["fast_money_player_scores"] = {}
+    state["fast_money_scores"] = {}
+    state["champion"] = winning_team
+    state["message"] = f"{winning_team} won the tournament! Fast Money is now an individual showdown for that team."
+
+
+def start_fast_money_with_teams(state, teams):
+    """Backward-compatible helper. If given finalist teams, uses the first team as fallback."""
+    teams = [t for t in teams if t and t != "BYE"]
+    if teams:
+        start_fast_money_for_winning_team(state, teams[0])
 
 
 def advance_to_next_match_or_round(state):
@@ -320,15 +329,10 @@ def advance_to_next_match_or_round(state):
         return
 
     winners = [m["winner"] for m in matches if m["winner"] and m["winner"] != "BYE"]
-    if len(winners) == 2:
-        start_fast_money_with_teams(state, winners)
-        state["message"] = "Final two teams advanced to Fast Money!"
-        return
 
     if len(winners) == 1:
-        state["champion"] = winners[0]
-        state["mode"] = "complete"
-        state["message"] = f"{winners[0]} wins the tournament!"
+        # Tournament is over. The winning team's players now compete individually in Fast Money.
+        start_fast_money_for_winning_team(state, winners[0])
         return
 
     state["bracket_round"] += 1
@@ -368,7 +372,7 @@ def render_css():
     <style>
     """ + custom_font_css + """
     .stApp { background: radial-gradient(circle at top, #fff6fa 0%, #f8d9e4 45%, #eeb2c9 100%); }
-    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:200px; font-weight:400; color:#7b2348; text-shadow:2px 2px 0 #fff, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:1px; }
+    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:72px; font-weight:400; color:#fff; text-shadow:3px 3px 0 #7b2348, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:8px; }
     .subtitle { text-align:center; font-size:22px; color:#7b2348; font-weight:800; margin-bottom:22px; }
     .board { background:linear-gradient(180deg,#9d3260,#52122f); color:white; border:8px solid #ffd5e4; border-radius:34px; padding:26px; font-size:34px; font-weight:900; text-align:center; box-shadow:0 12px 28px rgba(80,20,50,.35); margin:18px 0; }
     .answer-revealed { background:linear-gradient(180deg,#fff8fb,#f7c7d9); color:#5c1435; border:5px solid #7b2348; border-radius:22px; padding:18px; font-size:26px; font-weight:900; margin:10px 0; display:flex; justify-content:space-between; }
@@ -505,87 +509,89 @@ def render_main_game(state):
 
 
 def render_fast_money(state, view):
-    teams = get_fast_money_finalist_teams(state)
-    st.markdown('<div class="board">Fast Money Final</div>', unsafe_allow_html=True)
+    champion_team = state.get("fast_money_champion_team") or state.get("champion", "")
+    st.markdown('<div class="board">Fast Money Individual Championship</div>', unsafe_allow_html=True)
 
-    if len(teams) < 2:
-        st.info("Fast Money is waiting for two finalist teams. The host can start Fast Money once the bracket is down to two teams.")
-        if state.get("teams"):
-            st.caption("Current signed-up teams: " + ", ".join(state.get("teams", [])))
+    if not champion_team:
+        st.info("Fast Money starts after one team wins the tournament.")
         return
 
-    # Repair state if it was missing finalist teams.
-    if state.get("fast_money_teams") != teams:
-        state["fast_money_teams"] = teams
-        state["fast_money_scores"] = {team: state.get("fast_money_scores", {}).get(team, 0) for team in teams}
-        if not state.get("fast_money_active_team") or state.get("fast_money_active_team") not in teams:
-            state["fast_money_active_team"] = teams[0]
-        save_state(state)
+    players = state.get("team_players", {}).get(champion_team, [])
+    st.markdown(f'<div class="card">Tournament Winning Team<br>{html.escape(champion_team)}</div>', unsafe_allow_html=True)
 
-    score_cols = st.columns(2)
-    for i, team in enumerate(teams[:2]):
-        score_cols[i].markdown(f'<div class="card">{team}<br>{state["fast_money_scores"].get(team, 0)} pts</div>', unsafe_allow_html=True)
+    if not players:
+        st.warning("No players are signed in under the winning team yet. Players should go to the player page and sign in to their team before Fast Money starts.")
+    else:
+        st.caption("Eligible Fast Money players: " + ", ".join(players))
 
-    active_team = state.get("fast_money_active_team") or teams[0]
-    active_player = state.get("fast_money_active_player", "Player 1")
     fm_questions = current_fast_money_set(state)
-
-    st.subheader(f"Current Turn: {active_team} — {active_player}")
-    st.caption("Fast Money has 5 different questions. Enter one answer for each question.")
-
     started_at = state.get("fast_money_started_at")
+
     if started_at:
         elapsed = int(time.time() - started_at)
         remaining = max(0, FAST_MONEY_SECONDS - elapsed)
         st.markdown(f'<div class="message">⏱️ {remaining} seconds remaining</div>', unsafe_allow_html=True)
         st.progress(remaining / FAST_MONEY_SECONDS)
         if remaining > 0:
-            st_autorefresh(interval=1000, key="fm_timer")
+            st_autorefresh(interval=1000, key="fm_individual_timer")
         else:
-            st.warning("Time is up. Submit now or ask the host to reset/move to the next player.")
+            st.warning("Time is up. Submit now if your form is still open.")
     else:
-        st.info("Waiting for host to start the Fast Money timer.")
+        st.info("Waiting for the host to start the Fast Money timer.")
+
+    st.subheader("Fast Money Questions")
+    for i, fq in enumerate(fm_questions):
+        st.write(f"**{i+1}. {fq['question']}**")
 
     if view == "player":
-        st.subheader("Fast Money Sign In")
-        selected_team = st.selectbox("Choose your finalist team", teams[:2], key="fm_signin_team")
-        player_name = st.text_input("Your name", key="fm_signin_name")
+        st.subheader("Fast Money Player Sign In")
+        st.caption("Only players signed in to the tournament-winning team can submit Fast Money answers.")
+
+        # Let players identify themselves from the champion team roster, or type their name if the roster is incomplete.
+        sign_in_mode = st.radio("How do you want to sign in?", ["Choose my name", "Type my name"], horizontal=True)
+        if sign_in_mode == "Choose my name" and players:
+            selected_name = st.selectbox("Your name", players, key="fm_individual_player_select")
+        else:
+            selected_name = st.text_input("Your name", key="fm_individual_player_text")
 
         if st.button("Sign In for Fast Money"):
-            if not player_name.strip():
-                st.error("Enter your name first.")
+            name = selected_name.strip() if selected_name else ""
+            if not name:
+                st.error("Enter or choose your name first.")
             else:
-                st.session_state["fast_money_team"] = selected_team
-                st.session_state["fast_money_name"] = player_name.strip()
-                st.success(f"Signed in as {player_name.strip()} on {selected_team}.")
+                if name not in players:
+                    state.setdefault("team_players", {}).setdefault(champion_team, [])
+                    state["team_players"][champion_team].append(name)
+                    save_state(state)
+                st.session_state["fast_money_individual_team"] = champion_team
+                st.session_state["fast_money_individual_name"] = name
+                st.success(f"Signed in as {name} on {champion_team}.")
                 st.rerun()
 
-        signed_team = st.session_state.get("fast_money_team")
-        signed_name = st.session_state.get("fast_money_name")
+        signed_team = st.session_state.get("fast_money_individual_team")
+        signed_name = st.session_state.get("fast_money_individual_name")
 
         if signed_team and signed_name:
             st.success(f"✅ You are signed in as {signed_name} on {signed_team}.")
-            st.caption(f"Active turn right now: {active_team} — {active_player}")
 
-            if signed_team not in teams[:2]:
-                st.error("You are signed into a team that is not in Fast Money. Sign in again using one of the finalist teams above.")
-            elif signed_team != active_team:
-                st.info(f"Waiting for {signed_team}'s turn. Current turn is {active_team} — {active_player}.")
+            if signed_team != champion_team:
+                st.error(f"You are signed into {signed_team}, but Fast Money is only for {champion_team}. Sign in again above.")
             elif not started_at:
-                st.info("You are on the active team. Wait for the host to start the timer, then enter your answers.")
+                st.info("You are eligible. Wait for the host to start the timer, then answer all 5 questions.")
             else:
                 safe_name = normalize_text(signed_name).replace(" ", "_") or "player"
-                key_base = f"{active_team}_{active_player}_{safe_name}"
+                key_base = f"{champion_team}_{safe_name}"
 
                 if key_base in state.get("fast_money_submissions", {}):
-                    st.success("Your Fast Money answers were already submitted.")
+                    score = state.get("fast_money_player_scores", {}).get(signed_name, 0)
+                    st.success(f"Your Fast Money answers were already submitted. Score: {score} points.")
                 else:
                     answers = []
-                    with st.form(f"fast_money_form_{key_base}"):
+                    with st.form(f"fast_money_individual_form_{key_base}"):
                         for i, fq in enumerate(fm_questions):
                             st.markdown(f"**Question {i+1}: {fq['question']}**")
-                            answers.append(st.text_input(f"Your answer for Question {i+1}", key=f"fm_{key_base}_{i}"))
-                        submitted = st.form_submit_button("Submit Fast Money Answers")
+                            answers.append(st.text_input(f"Your answer for Question {i+1}", key=f"fm_individual_{key_base}_{i}"))
+                        submitted = st.form_submit_button("Submit My Fast Money Answers")
 
                     if submitted:
                         total = 0
@@ -594,31 +600,53 @@ def render_fast_money(state, view):
                             fq = fm_questions[i]
                             points, matched, sim = score_answer(ans, fq["answers"])
                             total += points
-                            details.append({"question": fq["question"], "answer": ans, "matched": matched, "points": points, "similarity": sim})
+                            details.append({
+                                "team": champion_team,
+                                "player": signed_name,
+                                "question": fq["question"],
+                                "answer": ans,
+                                "matched": matched,
+                                "points": points,
+                                "similarity": sim,
+                            })
 
                         state.setdefault("fast_money_submissions", {})[key_base] = details
-                        state.setdefault("fast_money_scores", {})[active_team] = state.get("fast_money_scores", {}).get(active_team, 0) + total
-                        state["message"] = f"{signed_name} submitted Fast Money answers for {active_team}."
-                        state["fast_money_started_at"] = None
+                        state.setdefault("fast_money_player_scores", {})[signed_name] = total
+                        state.setdefault("fast_money_scores", {})[signed_name] = total
+                        state["message"] = f"{signed_name} submitted Fast Money answers and scored {total} points."
                         save_state(state)
-                        st.success(f"Submitted! Awarded {total} points.")
+                        st.success(f"Submitted! You scored {total} points.")
                         st.rerun()
         else:
-            st.info("Sign in above so the game knows which team you are answering for.")
+            st.info("Sign in above so the game knows who is answering.")
 
-    with st.expander("Fast Money Submissions / Scoring"):
+    st.subheader("Fast Money Leaderboard")
+    player_scores = state.get("fast_money_player_scores", {})
+    if player_scores:
+        ranked = sorted(player_scores.items(), key=lambda item: item[1], reverse=True)
+        for rank, (player, score) in enumerate(ranked, start=1):
+            medal = "🏆" if rank == 1 else ""
+            st.markdown(f"**{rank}. {html.escape(str(player))}** — {score} pts {medal}")
+        top_score = ranked[0][1]
+        leaders = [p for p, score in ranked if score == top_score]
+        if len(leaders) == 1:
+            st.success(f"🏆 Current Fast Money winner: {leaders[0]} with {top_score} points")
+        else:
+            st.warning(f"Tie for first: {', '.join(leaders)} with {top_score} points")
+    else:
+        st.info("No Fast Money submissions yet.")
+
+    with st.expander("Fast Money Submissions / Scoring Details"):
         for key, rows in state.get("fast_money_submissions", {}).items():
-            st.write(f"**{key}**")
+            if not rows:
+                continue
+            player = rows[0].get("player", key)
+            st.write(f"**{player}**")
             for row in rows:
                 percent = round(row.get("similarity", 0) * 100)
-                if row.get("question"):
-                    st.write(f"**Q:** {row['question']}")
-                st.write(f"{row['answer']} → {row['matched']} = {row['points']} pts ({percent}% match)")
+                st.write(f"**Q:** {row.get('question', '')}")
+                st.write(f"{row.get('answer', '')} → {row.get('matched', '')} = {row.get('points', 0)} pts ({percent}% match)")
 
-    scores = state.get("fast_money_scores", {})
-    if len(teams) >= 2 and scores.get(teams[0], 0) != scores.get(teams[1], 0):
-        winner = max(teams[:2], key=lambda t: scores.get(t, 0))
-        st.success(f"🏆 Current winner: {winner}")
 
 def render_host_controls(state):
     st.sidebar.title("Host Controls")
@@ -735,25 +763,37 @@ def render_host_controls(state):
 
     if state.get("mode") == "fast_money":
         st.sidebar.subheader("Fast Money")
-        teams = state.get("fast_money_teams", [])
-        if teams:
-            state["fast_money_active_team"] = st.sidebar.selectbox("Active Team", teams, index=teams.index(state.get("fast_money_active_team", teams[0])) if state.get("fast_money_active_team") in teams else 0)
-            state["fast_money_active_player"] = st.sidebar.selectbox("Active Player", ["Player 1", "Player 2"])
-            if st.sidebar.button("Start Timer"):
-                state["fast_money_started_at"] = int(time.time())
+        champion_team = state.get("fast_money_champion_team") or state.get("champion", "")
+        st.sidebar.write(f"Winning team: {champion_team}")
+        st.sidebar.caption("All signed-in players on the winning team can answer at the same time from their phones.")
+        if st.sidebar.button("Start Timer for All Players"):
+            state["fast_money_started_at"] = int(time.time())
+            save_state(state)
+            st.rerun()
+        if st.sidebar.button("Stop / Reset Timer"):
+            state["fast_money_started_at"] = None
+            save_state(state)
+            st.rerun()
+        if st.sidebar.button("Clear Fast Money Submissions"):
+            state["fast_money_submissions"] = {}
+            state["fast_money_player_scores"] = {}
+            state["fast_money_scores"] = {}
+            state["fast_money_started_at"] = None
+            save_state(state)
+            st.rerun()
+        if st.sidebar.button("Crown Individual Fast Money Winner"):
+            scores = state.get("fast_money_player_scores", {})
+            if scores:
+                top_score = max(scores.values())
+                winners = [name for name, score in scores.items() if score == top_score]
+                if len(winners) == 1:
+                    state["message"] = f"{winners[0]} wins Fast Money with {top_score} points!"
+                else:
+                    state["message"] = f"Fast Money tie: {', '.join(winners)} with {top_score} points."
                 save_state(state)
                 st.rerun()
-            if st.sidebar.button("Stop / Reset Timer"):
-                state["fast_money_started_at"] = None
-                save_state(state)
-                st.rerun()
-            if st.sidebar.button("Crown Fast Money Winner"):
-                scores = state.get("fast_money_scores", {})
-                winner = max(teams, key=lambda t: scores.get(t, 0))
-                state["champion"] = winner
-                state["message"] = f"{winner} wins Baby in Bloom Feud!"
-                save_state(state)
-                st.rerun()
+            else:
+                st.sidebar.error("No Fast Money submissions yet.")
 
     st.sidebar.subheader("Danger Zone")
     if st.sidebar.button("Reset Entire Game"):
