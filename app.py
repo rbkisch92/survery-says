@@ -451,7 +451,7 @@ def render_css():
     .stDownloadButton > button:disabled,
     div[data-testid="stFormSubmitButton"] button:disabled {
         background:#d8bcc5 !important;
-        color:#CDB8D8!important;
+        color:##CDB8D8 !important;
         opacity:.72 !important;
     }
     input, textarea, select, [data-baseweb="select"] > div {
