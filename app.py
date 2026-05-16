@@ -414,9 +414,53 @@ def render_css():
     .bracket { background:rgba(255,251,246,.92); border:2px solid rgba(111,135,95,.35); border-radius:22px; padding:16px; color:var(--ink); font-size:20px; font-weight:650; margin:8px 0; box-shadow:0 8px 20px rgba(111,135,95,.10); }
     .message { text-align:center; color:var(--sage); font-size:28px; font-weight:700; margin-top:18px; }
     .soft-note { max-width:960px; margin:12px auto; background:rgba(220,231,213,.55); border:1px solid rgba(111,135,95,.28); border-radius:18px; padding:14px 18px; color:var(--sage); text-align:center; font-size:21px; }
-    .stButton > button, .stDownloadButton > button, button[kind="primary"] { background:var(--rose) !important; color:white !important; border:0 !important; border-radius:999px !important; padding:.58rem 1rem !important; font-family:Georgia,serif !important; box-shadow:0 6px 14px rgba(183,121,138,.22); }
-    .stButton > button:hover { background:var(--rose-dark) !important; }
-    input, textarea, select, [data-baseweb="select"] > div { border-radius:16px !important; }
+    /* Streamlit widgets use nested BaseWeb elements, so style the button AND its inner text. */
+    .stButton > button,
+    .stDownloadButton > button,
+    button[kind="primary"],
+    button[data-testid="baseButton-primary"],
+    button[data-testid="baseButton-secondary"],
+    div[data-testid="stFormSubmitButton"] button {
+        background:var(--rose) !important;
+        color:#ffffff !important;
+        border:0 !important;
+        border-radius:999px !important;
+        padding:.62rem 1.05rem !important;
+        font-family: Georgia, 'Times New Roman', serif !important;
+        font-size:1rem !important;
+        font-weight:700 !important;
+        letter-spacing:.25px !important;
+        box-shadow:0 6px 14px rgba(183,121,138,.22);
+    }
+    .stButton > button *,
+    .stDownloadButton > button *,
+    button[kind="primary"] *,
+    button[data-testid="baseButton-primary"] *,
+    button[data-testid="baseButton-secondary"] *,
+    div[data-testid="stFormSubmitButton"] button * {
+        color:#ffffff !important;
+        font-family: Georgia, 'Times New Roman', serif !important;
+        font-weight:700 !important;
+        opacity:1 !important;
+        visibility:visible !important;
+    }
+    .stButton > button:hover,
+    .stDownloadButton > button:hover,
+    div[data-testid="stFormSubmitButton"] button:hover { background:var(--rose-dark) !important; }
+    .stButton > button:disabled,
+    .stDownloadButton > button:disabled,
+    div[data-testid="stFormSubmitButton"] button:disabled {
+        background:#d8bcc5 !important;
+        color:#ffffff !important;
+        opacity:.72 !important;
+    }
+    input, textarea, select, [data-baseweb="select"] > div {
+        border-radius:16px !important;
+        font-family: Georgia, 'Times New Roman', serif !important;
+    }
+    input, textarea, [data-baseweb="select"] * {
+        font-family: Georgia, 'Times New Roman', serif !important;
+    }
     .stProgress > div > div > div > div { background-color:var(--sage) !important; }
     @media (max-width:700px) {
         .title { font-size:54px; letter-spacing:3px; }
