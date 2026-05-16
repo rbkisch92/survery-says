@@ -373,7 +373,7 @@ def render_css():
     """ + custom_font_css + """
     :root {
         --paper: #F8F4ED;
-        --paper-soft: #FFFBF6;
+        --paper-soft: #6F875F;
         --rose: #B9798A;
         --rose-dark: #8D5363;
         --rose-light: #EBCAD3;
