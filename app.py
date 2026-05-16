@@ -132,6 +132,11 @@ def migrate_state(state):
     if not state.get("fast_money_questions"):
         state["fast_money_questions"] = DEFAULT_FAST_MONEY_QUESTIONS
 
+
+    # Ensure preloaded teams always exist
+    for team in PRELOADED_TEAMS:
+        state["teams"].setdefault(team, [])
+
     return state
 
 
