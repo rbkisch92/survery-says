@@ -25,6 +25,18 @@ FAST_MONEY_SECONDS = 45
 FUZZY_THRESHOLD = 78
 
 
+PRELOADED_TEAMS = [
+    "Roses",
+    "Peonies",
+    "Tulips",
+    "Hydrangeas",
+    "Daisies",
+    "Lilacs",
+    "Ranunculus",
+    "Wildflowers",
+]
+
+
 DEFAULT_MAIN_QUESTIONS = [
     {
         "question": "Name something parents always carry in a diaper bag.",
@@ -65,7 +77,9 @@ DEFAULT_FAST_MONEY_QUESTIONS = [
 
 def default_state():
     return {
-        "teams": {},
+        "teams": {
+            team: [] for team in PRELOADED_TEAMS
+        },
         "locked": False,
         "matches": [],
         "current_match_index": 0,
@@ -632,7 +646,7 @@ if view == "player":
 
         player_name = st.text_input("Your name")
         existing_teams = list(state.get("teams", {}).keys())
-        team_choice = st.selectbox("Join existing team", ["Create new team"] + existing_teams)
+        team_choice = st.selectbox("Join a team", existing_teams + ["Create new team"])
         new_team_name = ""
 
         if team_choice == "Create new team":
