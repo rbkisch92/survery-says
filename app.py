@@ -47,8 +47,8 @@ DEFAULT_QUESTIONS = [
     },
 ]
 
-APP_TITLE = "🌸 Baby in Bloom Feud 🌸"
-FAST_MONEY_SECONDS = 60
+APP_TITLE = "Baby in Bloom Feud"
+FAST_MONEY_SECONDS = 25
 FUZZY_MATCH_THRESHOLD = 0.78
 
 
@@ -371,25 +371,79 @@ def render_css():
     st.markdown("""
     <style>
     """ + custom_font_css + """
-    .stApp { background: radial-gradient(circle at top, #fff6fa 0%, #f8d9e4 45%, #eeb2c9 100%); }
-    .title { text-align:center; font-family:'SophiaRonald', 'Brush Script MT', cursive; font-size:72px; font-weight:400; color:#fff; text-shadow:3px 3px 0 #7b2348, 6px 6px 14px rgba(0,0,0,.25); margin-bottom:8px; }
-    .subtitle { text-align:center; font-size:22px; color:#7b2348; font-weight:800; margin-bottom:22px; }
-    .board { background:linear-gradient(180deg,#9d3260,#52122f); color:white; border:8px solid #ffd5e4; border-radius:34px; padding:26px; font-size:34px; font-weight:900; text-align:center; box-shadow:0 12px 28px rgba(80,20,50,.35); margin:18px 0; }
-    .answer-revealed { background:linear-gradient(180deg,#fff8fb,#f7c7d9); color:#5c1435; border:5px solid #7b2348; border-radius:22px; padding:18px; font-size:26px; font-weight:900; margin:10px 0; display:flex; justify-content:space-between; }
-    .answer-hidden { background:linear-gradient(180deg,#7b2348,#3e0d25); color:#ffd5e4; border:5px solid #ffd5e4; border-radius:22px; padding:18px; font-size:30px; font-weight:900; text-align:center; margin:10px 0; }
-    .answer-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
-    @media (max-width: 700px) { .title { font-size: 52px; line-height: 1.05; } .answer-grid { grid-template-columns: 1fr; } .answer-revealed, .answer-hidden { margin: 6px 0; font-size: 24px; } }
-    .card { background:#fff8fb; border:4px solid #7b2348; border-radius:24px; padding:18px; color:#5c1435; font-size:22px; font-weight:900; text-align:center; box-shadow:0 6px 16px rgba(80,20,50,.18); }
-    .bracket { background:#fff8fb; border:3px solid #c8658d; border-radius:18px; padding:14px; color:#5c1435; font-weight:800; margin:8px 0; }
-    .message { text-align:center; color:#5c1435; font-size:26px; font-weight:900; margin-top:16px; }
+    :root {
+        --paper: #F8F4ED;
+        --paper-soft: #FFFBF6;
+        --rose: #B9798A;
+        --rose-dark: #8D5363;
+        --rose-light: #EBCAD3;
+        --sage: #6F875F;
+        --sage-soft: #DCE7D5;
+        --lavender: #CDB8D8;
+        --ink: #5B4A45;
+        --shadow: rgba(117, 78, 85, .18);
+    }
+    .stApp {
+        background-color: var(--paper);
+        background-image:
+            radial-gradient(circle at 20% 15%, rgba(255,255,255,.85) 0 1px, transparent 1px),
+            radial-gradient(circle at 80% 20%, rgba(183,121,138,.08), transparent 28%),
+            radial-gradient(circle at 20% 80%, rgba(111,135,95,.08), transparent 32%),
+            linear-gradient(90deg, rgba(90,70,60,.025) 1px, transparent 1px),
+            linear-gradient(rgba(90,70,60,.018) 1px, transparent 1px);
+        background-size: 28px 28px, 800px 800px, 700px 700px, 18px 18px, 18px 18px;
+        color: var(--ink);
+    }
+    [data-testid="stHeader"] { background: rgba(248,244,237,.82); }
+    [data-testid="stSidebar"] { background: #fbf7f1; border-right: 1px solid rgba(183,121,138,.22); }
+    h1, h2, h3, .stMarkdown, .stText, label, p, div {
+        font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    }
+    .title-wrap { max-width: 1080px; margin: 0 auto 18px auto; padding: 28px 18px 18px; text-align:center; }
+    .clothesline { font-size: 28px; letter-spacing: 8px; opacity: .72; margin-bottom: 10px; color: var(--sage); }
+    .title { text-align:center; font-family:'SophiaRonald','Brush Script MT',cursive; font-size:84px; font-weight:400; line-height:.96; color:var(--rose); text-shadow:0 3px 0 rgba(255,255,255,.88), 0 10px 20px rgba(141,83,99,.16); margin:0; }
+    .subtitle { text-align:center; font-size:28px; color:var(--sage); font-weight:600; letter-spacing:.5px; margin-top:14px; }
+    .floral-divider { color:var(--lavender); font-size:24px; text-align:center; margin:12px 0 22px; opacity:.9; }
+    .board { background:rgba(255,251,246,.92); color:var(--rose-dark); border:2px solid rgba(183,121,138,.5); border-radius:28px; padding:30px 28px; font-size:38px; font-weight:700; text-align:center; box-shadow:0 14px 34px var(--shadow); margin:22px auto; max-width:1120px; position:relative; }
+    .board:before, .board:after { content:'✿'; color:var(--lavender); position:absolute; top:50%; transform:translateY(-50%); font-size:24px; opacity:.75; }
+    .board:before { left:18px; } .board:after { right:18px; }
+    .answer-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; max-width:1120px; margin:0 auto; }
+    .answer-revealed, .answer-hidden { border-radius:22px; padding:18px 22px; font-size:28px; font-weight:700; margin:0; box-shadow:0 9px 22px rgba(111,135,95,.13); }
+    .answer-revealed { background:linear-gradient(180deg, rgba(255,251,246,.96), rgba(241,231,218,.92)); color:var(--sage); border:2px solid rgba(111,135,95,.42); display:flex; justify-content:space-between; gap:18px; }
+    .answer-hidden { background:linear-gradient(180deg, rgba(255,251,246,.96), rgba(235,202,211,.62)); color:var(--rose); border:2px dashed rgba(183,121,138,.58); text-align:center; min-height:35px; }
+    .card { background:rgba(255,251,246,.9); border:2px solid rgba(183,121,138,.42); border-radius:24px; padding:18px; color:var(--rose-dark); font-size:23px; font-weight:700; text-align:center; box-shadow:0 9px 22px rgba(117,78,85,.12); }
+    .bracket { background:rgba(255,251,246,.92); border:2px solid rgba(111,135,95,.35); border-radius:22px; padding:16px; color:var(--ink); font-size:20px; font-weight:650; margin:8px 0; box-shadow:0 8px 20px rgba(111,135,95,.10); }
+    .message { text-align:center; color:var(--sage); font-size:28px; font-weight:700; margin-top:18px; }
+    .soft-note { max-width:960px; margin:12px auto; background:rgba(220,231,213,.55); border:1px solid rgba(111,135,95,.28); border-radius:18px; padding:14px 18px; color:var(--sage); text-align:center; font-size:21px; }
+    .stButton > button, .stDownloadButton > button, button[kind="primary"] { background:var(--rose) !important; color:white !important; border:0 !important; border-radius:999px !important; padding:.58rem 1rem !important; font-family:Georgia,serif !important; box-shadow:0 6px 14px rgba(183,121,138,.22); }
+    .stButton > button:hover { background:var(--rose-dark) !important; }
+    input, textarea, select, [data-baseweb="select"] > div { border-radius:16px !important; }
+    .stProgress > div > div > div > div { background-color:var(--sage) !important; }
+    @media (max-width:700px) {
+        .title { font-size:56px; }
+        .subtitle { font-size:22px; }
+        .clothesline { font-size:20px; letter-spacing:5px; }
+        .board { font-size:27px; padding:22px 18px; }
+        .board:before, .board:after { display:none; }
+        .answer-grid { grid-template-columns:1fr; gap:10px; }
+        .answer-revealed, .answer-hidden { font-size:23px; padding:16px 18px; }
+        .card { font-size:19px; padding:14px; }
+    }
     </style>
     """, unsafe_allow_html=True)
 
-
 def render_header():
-    st.markdown(f'<div class="title">{APP_TITLE}</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Tournament Edition</div>', unsafe_allow_html=True)
-
+    st.markdown(
+        f"""
+        <div class="title-wrap">
+            <div class="clothesline">♡ 𓍯 ✿ 𓍯 ♡</div>
+            <div class="title">{APP_TITLE}</div>
+            <div class="subtitle">Tournament Edition</div>
+            <div class="floral-divider">lavender • clover • chamomile • baby’s breath</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 def render_bracket(state):
     st.subheader("🏆 Bracket")
@@ -479,7 +533,7 @@ def render_main_game(state):
     score_cols = st.columns(3)
     match_scores = state.get("match_scores", {})
     score_cols[0].markdown(f'<div class="card">{left}<br>Match: {match_scores.get(left, 0)}<br>Total: {state["scores"].get(left, 0)}</div>', unsafe_allow_html=True)
-    score_cols[1].markdown(f'<div class="card">Match Q {state["match_question_number"]}/3<br>Bank: {state["round_bank"]}</div>', unsafe_allow_html=True)
+    score_cols[1].markdown(f'<div class="card">One-Question Match<br>Bank: {state["round_bank"]}</div>', unsafe_allow_html=True)
     score_cols[2].markdown(f'<div class="card">{right}<br>Match: {match_scores.get(right, 0)}<br>Total: {state["scores"].get(right, 0)}</div>', unsafe_allow_html=True)
 
     st.markdown(f'<div class="board">{html.escape(str(q["question"]))}</div>', unsafe_allow_html=True)
@@ -502,7 +556,8 @@ def render_main_game(state):
         unsafe_allow_html=True,
     )
     if state["strikes"]:
-        st.markdown(f'<div class="message">{"❌" * state["strikes"]}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="message">❌ Steal Opportunity</div>', unsafe_allow_html=True)
+        st.markdown('<div class="soft-note">One strike sends the question to the other team for one steal attempt.</div>', unsafe_allow_html=True)
     if state["buzzed"]:
         st.markdown(f'<div class="message">🚨 Buzzed first: {state["buzzed"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="message">{state["message"]}</div>', unsafe_allow_html=True)
@@ -736,16 +791,7 @@ def render_host_controls(state):
                     save_state(state)
                     st.sidebar.error(msg)
 
-        if st.sidebar.button("Next Question in Match"):
-            if state["match_question_number"] < 3:
-                state["match_question_number"] += 1
-                state["current_question_index"] += 1
-                reset_main_round(state)
-                state["message"] = "Next question in this match."
-            else:
-                state["message"] = "This match has completed 3 questions. Use Auto-Advance Winner to move on."
-            save_state(state)
-            st.rerun()
+        st.sidebar.caption("Quickplay mode: each match is one question. Award the bank, then use Auto-Advance Winner.")
 
         buzz = st.sidebar.text_input("Buzz input / player name")
         if st.sidebar.button("Set Buzz Winner"):
@@ -753,7 +799,12 @@ def render_host_controls(state):
             save_state(state)
             st.rerun()
         if st.sidebar.button("Add Strike"):
-            state["strikes"] = min(3, state["strikes"] + 1)
+            state["strikes"] = 1
+            match = current_match(state)
+            if match:
+                state["message"] = "Strike! The other team has one chance to steal the bank."
+            else:
+                state["message"] = "Strike! The other team has one chance to steal the bank."
             save_state(state)
             st.rerun()
         if st.sidebar.button("Clear Strikes"):
