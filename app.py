@@ -373,7 +373,7 @@ def render_css():
     """ + custom_font_css + """
     :root {
         --paper: #F8F4ED;
-        --paper-soft: #6F875F;
+        --paper-soft: #FFFBF6;
         --rose: #B9798A;
         --rose-dark: #8D5363;
         --rose-light: #EBCAD3;
@@ -438,7 +438,7 @@ def render_css():
     button[data-testid="baseButton-primary"] *,
     button[data-testid="baseButton-secondary"] *,
     div[data-testid="stFormSubmitButton"] button * {
-        color:#ffffff !important;
+        color:#CDB8D8 !important;
         font-family: Georgia, 'Times New Roman', serif !important;
         font-weight:700 !important;
         opacity:1 !important;
