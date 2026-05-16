@@ -438,7 +438,7 @@ def render_css():
     button[data-testid="baseButton-primary"] *,
     button[data-testid="baseButton-secondary"] *,
     div[data-testid="stFormSubmitButton"] button * {
-        color:#CDB8D8 !important;
+        color:#ffffff !important;
         font-family: Georgia, 'Times New Roman', serif !important;
         font-weight:700 !important;
         opacity:1 !important;
@@ -451,7 +451,7 @@ def render_css():
     .stDownloadButton > button:disabled,
     div[data-testid="stFormSubmitButton"] button:disabled {
         background:#d8bcc5 !important;
-        color:#ffffff !important;
+        color:#CDB8D8!important;
         opacity:.72 !important;
     }
     input, textarea, select, [data-baseweb="select"] > div {
