@@ -392,7 +392,7 @@ def render_css():
             linear-gradient(90deg, rgba(90,70,60,.025) 1px, transparent 1px),
             linear-gradient(rgba(90,70,60,.018) 1px, transparent 1px);
         background-size: 28px 28px, 800px 800px, 700px 700px, 18px 18px, 18px 18px;
-        color: var(--paper-soft);
+        color: var(--ink);
     }
     [data-testid="stHeader"] { background: rgba(248,244,237,.82); }
     [data-testid="stSidebar"] { background: #fbf7f1; border-right: 1px solid rgba(183,121,138,.22); }
