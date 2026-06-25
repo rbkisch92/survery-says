@@ -265,7 +265,7 @@ html, body, .stApp {
 
 .main-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(54px, 8vw, 108px);
+    font-size: clamp(48px, 8vw, 108px);
     line-height: 1;
     text-align: center;
     font-weight: 800;
