@@ -420,6 +420,7 @@ def default_state():
         "google_sheet_url": "",
         "background_image_data": "",
         "background_image_mime": "",
+        "center_panel_color": "",
         "app_title": "Family Feud",
         "app_subtitle": "Tournament Edition",
         "theme": "Classic Party",
@@ -738,6 +739,8 @@ def migrate_state(state):
         state["background_image_data"] = ""
     if not isinstance(state.get("background_image_mime"), str):
         state["background_image_mime"] = ""
+    if not isinstance(state.get("center_panel_color"), str):
+        state["center_panel_color"] = ""
     if not isinstance(state.get("app_title"), str) or not state.get("app_title", "").strip():
         state["app_title"] = "Family Feud"
     if not isinstance(state.get("app_subtitle"), str):
@@ -993,7 +996,8 @@ button[kind="primary"] *,
 
 # Apply the selected theme after the base CSS so it overrides the default colors.
 active_theme = get_theme_colors(state)
-center_panel_rgb = hex_to_rgb(active_theme.get("cream"), fallback=(255, 255, 255))
+center_panel_color = state.get("center_panel_color") or active_theme.get("cream")
+center_panel_rgb = hex_to_rgb(center_panel_color, fallback=(255, 255, 255))
 st.markdown(
     f"""
 <style>
@@ -1021,6 +1025,7 @@ section[data-testid="stSidebar"] {{
 */
 [data-testid="stAppViewContainer"] > .main {{
     background: transparent !important;
+    min-height: 100vh !important;
 }}
 
 /* Streamlit uses different block-container test IDs/classes across versions, so target both. */
@@ -1028,13 +1033,13 @@ section[data-testid="stSidebar"] {{
 [data-testid="stAppViewBlockContainer"] {{
     max-width: min(1180px, calc(100vw - 120px)) !important;
     width: min(1180px, calc(100vw - 120px)) !important;
-    min-height: calc(100vh - 2rem) !important;
-    background-color: rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.60) !important;
+    min-height: 100vh !important;
+    background-color: rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.80) !important;
     background-image: none !important;
     border: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.85) !important;
     border-radius: 28px !important;
     padding: 2rem 2.5rem 3rem 2.5rem !important;
-    margin: 1rem auto 2rem auto !important;
+    margin: 0 auto !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18) !important;
     backdrop-filter: blur(2px);
 }}
@@ -1046,7 +1051,8 @@ section[data-testid="stSidebar"] {{
         width: calc(100vw - 24px) !important;
         max-width: calc(100vw - 24px) !important;
         padding: 1.25rem !important;
-        margin: 0.75rem auto 1.5rem auto !important;
+        margin: 0 auto !important;
+        min-height: 100vh !important;
     }}
 }}
 </style>
@@ -1627,7 +1633,7 @@ if view == "host":
             st.rerun()
 
     with st.sidebar.expander("Background Image", expanded=False):
-        st.caption("Upload a JPG/PNG/WebP image for the outer page background. The center game panel stays a 20% transparent solid theme color for readability.")
+        st.caption("Upload a JPG/PNG/WebP image for the outer page background. The center game panel stays a 20% transparent solid color for readability.")
         uploaded_background = st.file_uploader("Upload background image", type=["png", "jpg", "jpeg", "webp"], key="background_image_upload")
         if uploaded_background is not None and st.button("Use Uploaded Background"):
             image_bytes = uploaded_background.getvalue()
@@ -1646,6 +1652,15 @@ if view == "host":
                 state["background_image_mime"] = ""
                 save_state(state)
                 st.rerun()
+
+        st.divider()
+        current_panel_color = state.get("center_panel_color") or get_theme_colors(state).get("cream", "#FFFFFF")
+        new_panel_color = st.color_picker("Center panel color", current_panel_color)
+        if new_panel_color != state.get("center_panel_color", ""):
+            state["center_panel_color"] = new_panel_color
+            save_state(state)
+            st.rerun()
+        st.caption("The center panel uses this color at 80% opacity, meaning it is 20% transparent. It extends to the bottom of the page.")
 
     with st.sidebar.expander("Event Theme + Preset Questions", expanded=True):
         theme_names = list(THEMES.keys())
