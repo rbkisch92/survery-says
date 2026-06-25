@@ -20,7 +20,7 @@ except Exception:
     fuzz = None
 
 # ============================================================
-# SURVEY STYLE INTERACTIVE PARTY GAME — VERSION 2.0
+# SURVEY STYLE INTERACTIVE PARTY GAME — VERSION 2.1
 # Single-file Streamlit app for easy Etsy/customer deployment.
 # ============================================================
 
@@ -367,6 +367,11 @@ def default_state():
         "panel_opacity": 0.20,
         "background_image": "",
         "background_mime": "image/png",
+        "background_style": "Fill / Cover",
+        "background_pattern_size": 220,
+        "background_position": "Center",
+        "background_brightness": 100,
+        "background_blur": 0,
         "champion_team": "",
         "tournament_complete": False,
         "fast_money_started": False,
@@ -877,10 +882,48 @@ def inject_css(state):
     title_size = int(state.get("title_size", 64))
     subtitle_size = int(state.get("subtitle_size", 24))
 
+    # Background designer settings
+    background_style = state.get("background_style", "Fill / Cover")
+    pattern_size = int(state.get("background_pattern_size", 220))
+    position_map = {
+        "Center": "center center",
+        "Top": "center top",
+        "Bottom": "center bottom",
+        "Left": "left center",
+        "Right": "right center",
+    }
+    bg_position = position_map.get(state.get("background_position", "Center"), "center center")
+    bg_brightness = int(state.get("background_brightness", 100))
+    bg_blur = int(state.get("background_blur", 0))
+
     if state.get("background_image"):
-        background_css = f"background-image: url('data:{state.get('background_mime', 'image/png')};base64,{state.get('background_image')}');"
+        bg_url = f"url('data:{state.get('background_mime', 'image/png')};base64,{state.get('background_image')}')"
+        if background_style == "Fit / Contain":
+            bg_size = "contain"
+            bg_repeat = "no-repeat"
+        elif background_style == "Repeat Pattern":
+            bg_size = f"{pattern_size}px auto"
+            bg_repeat = "repeat"
+        elif background_style == "Repeat Horizontally":
+            bg_size = f"{pattern_size}px auto"
+            bg_repeat = "repeat-x"
+        elif background_style == "Repeat Vertically":
+            bg_size = f"{pattern_size}px auto"
+            bg_repeat = "repeat-y"
+        else:
+            bg_size = "cover"
+            bg_repeat = "no-repeat"
+        background_css = f"""
+            background-color: {theme['paper']} !important;
+            background-image: {bg_url} !important;
+            background-size: {bg_size} !important;
+            background-repeat: {bg_repeat} !important;
+            background-position: {bg_position} !important;
+            background-attachment: fixed !important;
+            filter: brightness({bg_brightness}%);
+        """
     else:
-        background_css = f"background: {theme['paper']};"
+        background_css = f"background: {theme['paper']} !important;"
 
     st.markdown(f"""
 <style>
@@ -904,10 +947,33 @@ html, body, .stApp {{
 }}
 
 .stApp {{
+    background: {theme['paper']} !important;
+}}
+
+.stApp::before {{
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     {background_css}
-    background-size: cover !important;
-    background-position: center center !important;
-    background-attachment: fixed !important;
+    transform: scale({1.03 if state.get("background_blur", 0) else 1});
+}}
+
+.stApp::after {{
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    backdrop-filter: blur({bg_blur}px);
+}}
+
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stVerticalBlock"] {{
+    position: relative;
+    z-index: 1;
 }}
 
 /* Streamlit content container becomes the full-height center panel */
@@ -1337,7 +1403,25 @@ if view == "host":
         subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", theme_colors["secondary"]))
         panel_color = st.color_picker("Center Panel Color", state.get("panel_color", theme_colors["cream"]))
         panel_opacity = st.slider("Center Panel Opacity", 5, 95, int(float(state.get("panel_opacity", 0.20)) * 100)) / 100
+
+        st.markdown("**Background Designer**")
         bg_upload = st.file_uploader("Upload Background Image", type=["png", "jpg", "jpeg", "webp"])
+        background_style = st.selectbox(
+            "Background Style",
+            ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"],
+            index=["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"].index(state.get("background_style", "Fill / Cover"))
+            if state.get("background_style", "Fill / Cover") in ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"] else 0,
+            help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless backgrounds or icon patterns.",
+        )
+        pattern_size = st.slider("Pattern / Image Scale", 40, 700, int(state.get("background_pattern_size", 220)), 10)
+        bg_position = st.selectbox(
+            "Background Position",
+            ["Center", "Top", "Bottom", "Left", "Right"],
+            index=["Center", "Top", "Bottom", "Left", "Right"].index(state.get("background_position", "Center"))
+            if state.get("background_position", "Center") in ["Center", "Top", "Bottom", "Left", "Right"] else 0,
+        )
+        bg_brightness = st.slider("Background Brightness", 30, 130, int(state.get("background_brightness", 100)), 5)
+        bg_blur = st.slider("Background Blur", 0, 12, int(state.get("background_blur", 0)), 1)
 
         changed = False
         for key, value in {
@@ -1349,6 +1433,11 @@ if view == "host":
             "subtitle_color": subtitle_color,
             "panel_color": panel_color,
             "panel_opacity": panel_opacity,
+            "background_style": background_style,
+            "background_pattern_size": pattern_size,
+            "background_position": bg_position,
+            "background_brightness": bg_brightness,
+            "background_blur": bg_blur,
         }.items():
             if state.get(key) != value:
                 state[key] = value
