@@ -1022,14 +1022,30 @@ html, body, .stApp {{
 
 /*
    Center panel layout:
-   The panel is applied directly to Streamlit's main content container.
-   This keeps it perfectly centered and makes the transparent color extend
-   all the way to the bottom of the viewport/content.
+   The transparent panel is a full-height layer behind the content.
+   This avoids Streamlit shrinking the panel to only the content height.
 */
 [data-testid="stMain"] {{
     display: flex !important;
     justify-content: center !important;
     align-items: stretch !important;
+    position: relative !important;
+    overflow: visible !important;
+}}
+
+[data-testid="stMain"]::before {{
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1120px, calc(100vw - 4rem));
+    min-height: 100vh;
+    background: {panel_rgba};
+    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    pointer-events: none;
+    z-index: 1;
 }}
 
 .main .block-container,
@@ -1043,8 +1059,8 @@ html, body, .stApp {{
     margin-left: auto !important;
     margin-right: auto !important;
     padding: 2.5rem 3rem 5rem 3rem !important;
-    background: {panel_rgba} !important;
-    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    background: transparent !important;
+    box-shadow: none !important;
     box-sizing: border-box !important;
 }}
 
@@ -1065,6 +1081,10 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 }}
 
 @media (max-width: 900px) {{
+    [data-testid="stMain"]::before {{
+        width: 100% !important;
+    }}
+
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
         width: 100% !important;
