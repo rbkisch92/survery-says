@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import random
@@ -231,6 +232,110 @@ EVENT_QUESTION_PRESETS = {
 }
 
 
+EXTRA_EVENT_MAIN_QUESTIONS = {
+    "Classic Party": [
+        {"question": "Name something people do when music starts playing.", "answers": [["Dance", 35], ["Sing", 25], ["Clap", 15], ["Record video", 12], ["Smile", 8], ["Leave the room", 5]]},
+        {"question": "Name something guests look for when they arrive at a party.", "answers": [["Food", 30], ["Drinks", 25], ["Bathroom", 18], ["Host", 12], ["Seat", 10], ["Friends", 5]]},
+        {"question": "Name something people put on a party invitation.", "answers": [["Date", 30], ["Time", 25], ["Address", 20], ["Dress code", 10], ["RSVP", 10], ["Theme", 5]]},
+        {"question": "Name a party food people eat with their hands.", "answers": [["Pizza", 30], ["Chips", 25], ["Sliders", 15], ["Tacos", 12], ["Cookies", 10], ["Wings", 8]]},
+        {"question": "Name something that can ruin a party.", "answers": [["Rain", 30], ["Bad music", 25], ["No food", 18], ["Drama", 12], ["Power outage", 10], ["Running late", 5]]},
+        {"question": "Name something people do before guests arrive.", "answers": [["Clean", 35], ["Decorate", 25], ["Cook", 18], ["Set the table", 12], ["Get dressed", 6], ["Light candles", 4]]},
+        {"question": "Name something people take home from a party.", "answers": [["Favor", 30], ["Leftovers", 25], ["Photos", 20], ["Gift bag", 15], ["Flowers", 5], ["Memories", 5]]},
+        {"question": "Name a reason people RSVP no.", "answers": [["Work", 30], ["Out of town", 25], ["Sick", 18], ["Busy", 15], ["No babysitter", 8], ["Too far", 4]]},
+        {"question": "Name something people decorate with.", "answers": [["Balloons", 35], ["Flowers", 25], ["Streamers", 15], ["Candles", 10], ["Signs", 10], ["Lights", 5]]},
+        {"question": "Name something people do after a party ends.", "answers": [["Clean", 35], ["Sleep", 25], ["Take trash out", 15], ["Look at photos", 12], ["Eat leftovers", 8], ["Send thank yous", 5]]},
+        {"question": "Name something found near the dessert table.", "answers": [["Cake", 35], ["Cupcakes", 25], ["Plates", 15], ["Forks", 10], ["Cookies", 10], ["Napkins", 5]]},
+        {"question": "Name something guests compliment at a party.", "answers": [["Food", 35], ["Decor", 25], ["Outfit", 15], ["Music", 10], ["Venue", 10], ["Cake", 5]]},
+        {"question": "Name something a host worries about.", "answers": [["Food running out", 35], ["Guests arriving", 20], ["Weather", 15], ["Clean house", 12], ["Timing", 10], ["Parking", 8]]},
+        {"question": "Name something people use to take photos.", "answers": [["Phone", 50], ["Camera", 20], ["Photo booth", 15], ["Polaroid", 8], ["Tablet", 4], ["Drone", 3]]},
+        {"question": "Name something people write on a party sign.", "answers": [["Welcome", 35], ["Name", 25], ["Happy Birthday", 15], ["Cheers", 10], ["Congrats", 10], ["Date", 5]]},
+        {"question": "Name a drink people serve at parties.", "answers": [["Water", 25], ["Soda", 22], ["Wine", 18], ["Cocktails", 15], ["Lemonade", 12], ["Juice", 8]]},
+    ],
+    "Baby Shower - Boy": [
+        {"question": "Name something you might find in a nursery.", "answers": [["Crib", 35], ["Changing table", 20], ["Rocking chair", 18], ["Diapers", 12], ["Books", 8], ["Blanket", 7]]},
+        {"question": "Name something new parents lose a lot of.", "answers": [["Sleep", 45], ["Time", 20], ["Patience", 15], ["Money", 10], ["Keys", 5], ["Sanity", 5]]},
+        {"question": "Name something people write in a baby shower card.", "answers": [["Congrats", 35], ["Best wishes", 25], ["Love", 15], ["Advice", 10], ["Baby name", 8], ["Blessings", 7]]},
+        {"question": "Name something babies spit up on.", "answers": [["Clothes", 35], ["Blanket", 25], ["Parent", 20], ["Burp cloth", 10], ["Car seat", 5], ["Floor", 5]]},
+        {"question": "Name something parents use to calm a baby.", "answers": [["Pacifier", 30], ["Bottle", 25], ["Rocking", 20], ["Singing", 12], ["Swaddle", 8], ["White noise", 5]]},
+        {"question": "Name something people guess at a baby shower.", "answers": [["Due date", 30], ["Weight", 25], ["Name", 20], ["Gender", 15], ["Height", 5], ["Hair color", 5]]},
+        {"question": "Name a baby shower favor.", "answers": [["Candy", 30], ["Candle", 25], ["Soap", 15], ["Cookies", 12], ["Seeds", 10], ["Keychain", 8]]},
+        {"question": "Name something a baby wears.", "answers": [["Onesie", 35], ["Diaper", 25], ["Socks", 15], ["Hat", 12], ["Bib", 8], ["Pajamas", 5]]},
+        {"question": "Name something in a baby registry.", "answers": [["Diapers", 30], ["Stroller", 25], ["Car seat", 20], ["Bottles", 12], ["Monitor", 8], ["Clothes", 5]]},
+        {"question": "Name something babies do loudly.", "answers": [["Cry", 45], ["Laugh", 20], ["Scream", 15], ["Burp", 10], ["Babble", 5], ["Cough", 5]]},
+        {"question": "Name a baby shower dessert.", "answers": [["Cake", 35], ["Cupcakes", 25], ["Cookies", 15], ["Cake pops", 12], ["Donuts", 8], ["Macarons", 5]]},
+        {"question": "Name something parents baby-proof.", "answers": [["Outlets", 35], ["Cabinets", 25], ["Stairs", 20], ["Doors", 10], ["Corners", 5], ["Drawers", 5]]},
+        {"question": "Name something babies chew on.", "answers": [["Teether", 30], ["Toys", 25], ["Fingers", 20], ["Pacifier", 12], ["Blanket", 8], ["Books", 5]]},
+        {"question": "Name something parents keep in the car for baby.", "answers": [["Car seat", 35], ["Diapers", 20], ["Wipes", 18], ["Blanket", 12], ["Toys", 8], ["Snacks", 7]]},
+        {"question": "Name a baby milestone.", "answers": [["First steps", 35], ["First word", 25], ["Crawling", 18], ["Rolling over", 12], ["Sitting up", 6], ["First tooth", 4]]},
+        {"question": "Name something people say about a newborn.", "answers": [["So cute", 35], ["Tiny", 25], ["Looks like dad", 15], ["Looks like mom", 12], ["Beautiful", 8], ["Sweet", 5]]},
+    ],
+    "Baby Shower - Girl": [],
+    "Gender Neutral Baby Shower": [],
+    "Bachelor Party": [
+        {"question": "Name something people do before a night out.", "answers": [["Get dressed", 30], ["Shower", 25], ["Eat", 18], ["Call a ride", 12], ["Take photos", 10], ["Pre-game", 5]]},
+        {"question": "Name something found at a sports bar.", "answers": [["TVs", 35], ["Beer", 25], ["Wings", 15], ["Games", 10], ["Fries", 10], ["Fans", 5]]},
+        {"question": "Name something people wear on a guys' trip.", "answers": [["Jeans", 30], ["Hat", 25], ["Sneakers", 20], ["Golf shirt", 10], ["Sunglasses", 10], ["Jacket", 5]]},
+        {"question": "Name something people do at a golf outing.", "answers": [["Golf", 40], ["Drink", 25], ["Drive cart", 15], ["Eat", 10], ["Take photos", 5], ["Lose balls", 5]]},
+        {"question": "Name something the groom gets teased about.", "answers": [["Marriage", 35], ["Dancing", 20], ["Exes", 15], ["Outfit", 12], ["Age", 10], ["Being nervous", 8]]},
+        {"question": "Name a bachelor party expense.", "answers": [["Hotel", 35], ["Drinks", 25], ["Food", 15], ["Flights", 12], ["Uber", 8], ["Activities", 5]]},
+        {"question": "Name something you need for a road trip.", "answers": [["Gas", 35], ["Snacks", 25], ["Music", 15], ["GPS", 12], ["Phone charger", 8], ["Drinks", 5]]},
+        {"question": "Name something people forget after a night out.", "answers": [["Wallet", 30], ["Phone", 25], ["Keys", 20], ["Jacket", 10], ["Sunglasses", 10], ["Plans", 5]]},
+        {"question": "Name something people book for a bachelor party.", "answers": [["Hotel", 35], ["Dinner", 20], ["Golf", 15], ["Party bus", 12], ["Flights", 10], ["Cabana", 8]]},
+        {"question": "Name a late-night food.", "answers": [["Pizza", 35], ["Tacos", 25], ["Burgers", 15], ["Fries", 10], ["Hot dogs", 8], ["Wings", 7]]},
+        {"question": "Name something people say in a toast.", "answers": [["Cheers", 35], ["Congrats", 25], ["To the groom", 20], ["Good luck", 10], ["Love you", 5], ["Finally", 5]]},
+        {"question": "Name something a best man plans.", "answers": [["Bachelor party", 40], ["Speech", 25], ["Travel", 15], ["Dinner", 10], ["Games", 5], ["Suit fitting", 5]]},
+        {"question": "Name something people do on a party bus.", "answers": [["Drink", 35], ["Dance", 25], ["Sing", 15], ["Take photos", 12], ["Laugh", 8], ["Play music", 5]]},
+        {"question": "Name something in a cooler.", "answers": [["Beer", 35], ["Ice", 25], ["Water", 15], ["Soda", 10], ["Snacks", 10], ["Juice", 5]]},
+        {"question": "Name a reason the groom might be nervous.", "answers": [["Wedding", 40], ["Speech", 20], ["Dancing", 15], ["Vows", 12], ["Money", 8], ["Family", 5]]},
+        {"question": "Name something people do the morning after a bachelor party.", "answers": [["Sleep", 35], ["Drink water", 25], ["Eat breakfast", 15], ["Pack", 10], ["Complain", 10], ["Find phone", 5]]},
+    ],
+    "Bachelorette Party": [
+        {"question": "Name something on a bachelorette packing list.", "answers": [["Outfits", 30], ["Makeup", 25], ["Swimsuit", 15], ["Shoes", 12], ["Phone charger", 10], ["Sash", 8]]},
+        {"question": "Name something people wear for a western bachelorette.", "answers": [["Cowboy boots", 35], ["Hat", 25], ["Denim", 15], ["Fringe", 10], ["White dress", 10], ["Bandana", 5]]},
+        {"question": "Name something at a pool day.", "answers": [["Swimsuit", 30], ["Sunscreen", 25], ["Drinks", 20], ["Towels", 10], ["Floaties", 10], ["Snacks", 5]]},
+        {"question": "Name something the bride wears.", "answers": [["White dress", 35], ["Veil", 25], ["Sash", 15], ["Ring", 10], ["Heels", 10], ["Cowboy boots", 5]]},
+        {"question": "Name something on a bachelorette itinerary.", "answers": [["Dinner", 30], ["Brunch", 25], ["Pool day", 20], ["Dancing", 10], ["Photos", 10], ["Games", 5]]},
+        {"question": "Name something people decorate a hotel room with.", "answers": [["Balloons", 35], ["Streamers", 20], ["Banner", 15], ["Confetti", 12], ["Photos", 10], ["Flowers", 8]]},
+        {"question": "Name a bachelorette party favor.", "answers": [["Sunglasses", 25], ["Cup", 20], ["Hair tie", 18], ["Hangover kit", 15], ["Lip balm", 12], ["Tote bag", 10]]},
+        {"question": "Name something people do at brunch.", "answers": [["Drink mimosas", 35], ["Eat", 25], ["Take photos", 15], ["Toast", 10], ["Talk", 10], ["Laugh", 5]]},
+        {"question": "Name a bachelorette party game.", "answers": [["Truth or dare", 30], ["Bride trivia", 25], ["Scavenger hunt", 20], ["Never have I ever", 15], ["Drink if", 10]]},
+        {"question": "Name something people do for the bride.", "answers": [["Toast her", 30], ["Take photos", 25], ["Buy drinks", 20], ["Give gifts", 10], ["Dance", 10], ["Celebrate", 5]]},
+        {"question": "Name a popular bachelorette color.", "answers": [["Pink", 35], ["White", 25], ["Black", 15], ["Gold", 10], ["Red", 10], ["Purple", 5]]},
+        {"question": "Name something in a hangover kit.", "answers": [["Advil", 30], ["Water", 25], ["Electrolytes", 20], ["Gum", 10], ["Snacks", 10], ["Bandages", 5]]},
+        {"question": "Name something people do before going out.", "answers": [["Makeup", 30], ["Hair", 25], ["Get dressed", 20], ["Photos", 10], ["Music", 10], ["Drinks", 5]]},
+        {"question": "Name something at a themed bachelorette.", "answers": [["Matching outfits", 30], ["Decor", 25], ["Signs", 15], ["Props", 12], ["Playlist", 10], ["Favors", 8]]},
+        {"question": "Name something people post after the trip.", "answers": [["Group photo", 35], ["Bride photo", 25], ["Video", 15], ["Decor", 10], ["Food", 10], ["Story recap", 5]]},
+        {"question": "Name something people forget on a girls' trip.", "answers": [["Phone charger", 30], ["Makeup", 20], ["Shoes", 15], ["Swimsuit", 15], ["ID", 10], ["Toothbrush", 10]]},
+    ],
+    "Bridal Shower": [],
+    "Birthday Party": [],
+    "Holiday Party": [],
+}
+
+# Reuse the boy baby shower extras for girl/neutral showers, with existing theme-specific questions still first.
+EXTRA_EVENT_MAIN_QUESTIONS["Baby Shower - Girl"] = EXTRA_EVENT_MAIN_QUESTIONS["Baby Shower - Boy"]
+EXTRA_EVENT_MAIN_QUESTIONS["Gender Neutral Baby Shower"] = EXTRA_EVENT_MAIN_QUESTIONS["Baby Shower - Boy"]
+EXTRA_EVENT_MAIN_QUESTIONS["Bridal Shower"] = EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"]
+EXTRA_EVENT_MAIN_QUESTIONS["Birthday Party"] = EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"]
+EXTRA_EVENT_MAIN_QUESTIONS["Holiday Party"] = EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"]
+
+
+def extend_event_question_presets_to_20():
+    """Ensure each built-in event theme has up to 20 main questions available."""
+    for theme_name, preset in EVENT_QUESTION_PRESETS.items():
+        extras = EXTRA_EVENT_MAIN_QUESTIONS.get(theme_name, EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"])
+        existing_questions = {q.get("question") for q in preset.get("main", [])}
+        for extra in extras:
+            if len(preset["main"]) >= 20:
+                break
+            if extra.get("question") not in existing_questions:
+                preset["main"].append(extra)
+                existing_questions.add(extra.get("question"))
+
+
+extend_event_question_presets_to_20()
+
+
 def preset_questions_for_theme(theme_name):
     preset = EVENT_QUESTION_PRESETS.get(theme_name) or EVENT_QUESTION_PRESETS["Classic Party"]
     # Deep copy through JSON so changing the active game does not mutate the preset.
@@ -271,12 +376,17 @@ def default_state():
         "match_scores": {},
         "total_scores": {},
         "current_question_index": 0,
+        "match_question_count": 1,
+        "questions_per_match": 3,
+        "target_team_count": 4,
         "revealed": [],
         "strike": False,
         "steal_mode": False,
         "questions": DEFAULT_MAIN_QUESTIONS,
         "fast_money_questions": DEFAULT_FAST_MONEY_QUESTIONS,
         "google_sheet_url": "",
+        "background_image_data": "",
+        "background_image_mime": "",
         "theme": "Classic Party",
         "custom_theme": default_custom_theme(),
         "champion_team": "",
@@ -580,9 +690,19 @@ def migrate_state(state):
 
 
     if state.get("theme") not in THEMES:
-        state["theme"] = "Purple"
+        state["theme"] = "Classic Party"
     if not isinstance(state.get("custom_theme"), dict):
         state["custom_theme"] = default_custom_theme()
+    if not isinstance(state.get("match_question_count"), int) or state.get("match_question_count", 1) < 1:
+        state["match_question_count"] = 1
+    if not isinstance(state.get("questions_per_match"), int) or state.get("questions_per_match", 3) < 1:
+        state["questions_per_match"] = 3
+    if not isinstance(state.get("target_team_count"), int) or state.get("target_team_count", 4) < 2:
+        state["target_team_count"] = 4
+    if not isinstance(state.get("background_image_data"), str):
+        state["background_image_data"] = ""
+    if not isinstance(state.get("background_image_mime"), str):
+        state["background_image_mime"] = ""
 
     return state
 
@@ -846,6 +966,23 @@ section[data-testid="stSidebar"] {{
 )
 
 
+# Optional host-uploaded background image. This is saved per game session.
+if state.get("background_image_data") and state.get("background_image_mime"):
+    st.markdown(
+        f"""
+<style>
+.stApp {{
+    background-image: linear-gradient(rgba(248, 245, 240, 0.72), rgba(248, 245, 240, 0.72)), url('data:{state["background_image_mime"]};base64,{state["background_image_data"]}') !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: fixed !important;
+}}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
+
+
 # -----------------------------
 # Utility functions
 # -----------------------------
@@ -1001,6 +1138,7 @@ def end_match_and_advance():
 
     state["current_match_index"] += 1
     reset_question_state()
+    state["match_question_count"] = 1
     state["current_question_index"] += 1
 
     if state["current_match_index"] >= len(state["matches"]):
@@ -1063,6 +1201,38 @@ def timer_remaining():
     return max(0, FAST_MONEY_SECONDS - elapsed)
 
 
+
+def advance_to_next_question_in_match():
+    questions_per_match = max(1, int(state.get("questions_per_match", 3)))
+    current_count = max(1, int(state.get("match_question_count", 1)))
+
+    if current_count >= questions_per_match:
+        state["message"] = f"This match already has {questions_per_match} question(s). End the match to advance."
+        return
+
+    state["match_question_count"] = current_count + 1
+    state["current_question_index"] += 1
+    reset_question_state()
+    state["message"] = f"Question {state['match_question_count']} of {questions_per_match}."
+
+
+def render_question_preview():
+    st.subheader("Question Preview")
+    st.caption("Preview what is currently loaded for this game session before you lock the teams.")
+
+    with st.expander(f"Main Game Questions ({len(state.get('questions', []))})", expanded=False):
+        for q_idx, question in enumerate(state.get("questions", []), start=1):
+            st.markdown(f"**{q_idx}. {question.get('question', '')}**")
+            for answer, points in question.get("answers", []):
+                st.write(f"- {answer} — {points}")
+
+    with st.expander(f"Fast Money Questions ({len(state.get('fast_money_questions', []))})", expanded=False):
+        for q_idx, question in enumerate(state.get("fast_money_questions", []), start=1):
+            st.markdown(f"**{q_idx}. {question.get('question', '')}**")
+            for answer, points in question.get("answers", []):
+                st.write(f"- {answer} — {points}")
+
+
 def render_header():
     st.markdown('<div class="main-title">Family Feud</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Tournament Edition</div>', unsafe_allow_html=True)
@@ -1109,6 +1279,12 @@ def render_scoreboard():
             <div class="small-note">{'STEAL!' if state.get("steal_mode") else 'current question'}</div>
         </div>
         """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        f'<div class="info-card"><strong>Match Question:</strong> {state.get("match_question_count", 1)} of {state.get("questions_per_match", 3)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -1244,6 +1420,11 @@ if view == "player":
                 st.error("Enter or select a team name.")
             else:
                 state = load_state()  # reload latest session state before changing shared data
+                target_team_count = int(state.get("target_team_count", 4))
+                creating_new_team = team not in state.get("teams", {})
+                if creating_new_team and len(state.get("teams", {})) >= target_team_count:
+                    st.error(f"This game is limited to {target_team_count} teams. Join an existing team or ask the host to increase the limit.")
+                    st.stop()
                 state["teams"].setdefault(team, [])
                 if name not in state["teams"][team]:
                     state["teams"][team].append(name)
@@ -1337,6 +1518,27 @@ if view == "player":
 
 if view == "host":
     st.sidebar.header("Host Controls")
+
+    with st.sidebar.expander("Background Image", expanded=False):
+        st.caption("Upload a JPG/PNG/WebP image to use as the game background for this session. Smaller images load faster for players.")
+        uploaded_background = st.file_uploader("Upload background image", type=["png", "jpg", "jpeg", "webp"], key="background_image_upload")
+        if uploaded_background is not None and st.button("Use Uploaded Background"):
+            image_bytes = uploaded_background.getvalue()
+            if len(image_bytes) > 2_500_000:
+                st.error("Please upload an image under 2.5 MB so the player view stays fast.")
+            else:
+                state["background_image_data"] = base64.b64encode(image_bytes).decode("utf-8")
+                state["background_image_mime"] = uploaded_background.type or "image/png"
+                save_state(state)
+                st.success("Background image updated.")
+                st.rerun()
+        if state.get("background_image_data"):
+            st.success("A custom background is active for this session.")
+            if st.button("Remove Background Image"):
+                state["background_image_data"] = ""
+                state["background_image_mime"] = ""
+                save_state(state)
+                st.rerun()
 
     with st.sidebar.expander("Event Theme + Preset Questions", expanded=True):
         theme_names = list(THEMES.keys())
@@ -1439,15 +1641,48 @@ if view == "host":
             except Exception as error:
                 st.error(f"Could not load questions from URL: {error}")
 
+    with st.sidebar.expander("Question Preview", expanded=False):
+        st.write(f"Main questions loaded: {len(state.get('questions', []))}")
+        st.write(f"Fast Money questions loaded: {len(state.get('fast_money_questions', []))}")
+        if st.button("Show / Refresh Question Preview"):
+            st.session_state["show_question_preview"] = True
+
     with st.sidebar.expander("Teams + Bracket", expanded=True):
-        st.write(f"Teams signed up: {len(state.get('teams', {}))}")
+        configured_teams = st.number_input(
+            "How many teams are playing?",
+            min_value=2,
+            max_value=20,
+            value=int(state.get("target_team_count", 4)),
+            step=1,
+            disabled=state.get("locked", False),
+        )
+        configured_questions = st.number_input(
+            "Questions per match",
+            min_value=1,
+            max_value=10,
+            value=int(state.get("questions_per_match", 3)),
+            step=1,
+            disabled=state.get("locked", False),
+        )
+        if not state.get("locked") and (configured_teams != state.get("target_team_count") or configured_questions != state.get("questions_per_match")):
+            state["target_team_count"] = int(configured_teams)
+            state["questions_per_match"] = int(configured_questions)
+            save_state(state)
+            st.rerun()
+
+        st.write(f"Teams signed up: {len(state.get('teams', {}))}/{state.get('target_team_count', 4)}")
 
         if not state.get("locked"):
             if st.button("Lock Teams + Build Bracket"):
-                if len(state.get("teams", {})) < 2:
+                signed_up_count = len(state.get("teams", {}))
+                target_count = int(state.get("target_team_count", 4))
+                if signed_up_count < 2:
                     st.error("You need at least 2 teams to play.")
+                elif signed_up_count != target_count:
+                    st.error(f"You selected {target_count} teams, but {signed_up_count} team(s) are signed up. Adjust the team count or wait for more teams.")
                 else:
                     state["locked"] = True
+                    state["match_question_count"] = 1
                     state["matches"] = build_initial_matches(list(state["teams"].keys()))
                     state["current_match_index"] = 0
                     state["round_winners"] = []
@@ -1467,6 +1702,9 @@ if view == "host":
                 st.rerun()
 
     render_bracket()
+
+    if st.session_state.get("show_question_preview"):
+        render_question_preview()
 
     if state.get("locked") and not state.get("tournament_complete"):
         render_scoreboard()
@@ -1502,6 +1740,12 @@ if view == "host":
             st.rerun()
 
         st.sidebar.subheader("Match Flow")
+        st.sidebar.caption(f"Question {state.get('match_question_count', 1)} of {state.get('questions_per_match', 3)} for this match.")
+        if st.sidebar.button("Next Question in This Match"):
+            advance_to_next_question_in_match()
+            save_state(state)
+            st.rerun()
+
         if st.sidebar.button("End Match / Auto-Advance Winner"):
             end_match_and_advance()
             save_state(state)
