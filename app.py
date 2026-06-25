@@ -1069,6 +1069,10 @@ if view == "host":
         st.rerun()
 
 elif not has_game_code:
+    ended_notice = st.session_state.pop("ended_session_notice", "")
+    if ended_notice:
+        st.warning(ended_notice)
+
     st.markdown(
         '<div class="info-card">Enter the game code from your host to join.</div>',
         unsafe_allow_html=True,
@@ -1091,6 +1095,13 @@ else:
 
 if state.get("ended"):
     ended_reason = state.get("ended_reason") or "This game session has ended because the host started a new session."
+
+    if view == "player":
+        st.session_state["ended_session_notice"] = ended_reason
+        st.query_params.clear()
+        st.query_params["view"] = "player"
+        st.rerun()
+
     st.warning(ended_reason)
     if view == "host":
         if st.button("Create Another New Session"):
