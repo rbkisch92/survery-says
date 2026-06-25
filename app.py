@@ -1026,22 +1026,20 @@ html, body, .stApp {{
    This avoids Streamlit shrinking the panel to only the content height.
 */
 [data-testid="stMain"] {{
-    display: flex !important;
-    justify-content: center !important;
-    align-items: stretch !important;
+    display: block !important;
     position: relative !important;
     overflow: visible !important;
 }}
 
 [data-testid="stMain"]::before {{
     content: "";
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     width: min(1120px, calc(100vw - 4rem));
-    min-height: 100vh;
+    height: 100vh;
     background: {panel_rgba};
     box-shadow: 0 0 35px rgba(0,0,0,0.08);
     pointer-events: none;
@@ -1052,7 +1050,6 @@ html, body, .stApp {{
 [data-testid="stMainBlockContainer"] {{
     position: relative;
     z-index: 2;
-    align-self: stretch !important;
     width: min(1120px, calc(100vw - 4rem)) !important;
     max-width: min(1120px, calc(100vw - 4rem)) !important;
     min-height: 100vh !important;
