@@ -976,21 +976,60 @@ html, body, .stApp {{
     z-index: 1;
 }}
 
-/* Streamlit content container becomes the full-height center panel */
+/*
+   Full-height center panel fix:
+   The tinted panel is drawn as a fixed layer behind the Streamlit content,
+   so it always reaches the bottom of the visible page even when the app
+   content grows or the browser window is tall.
+*/
+[data-testid="stMain"]::before {{
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: min(1080px, 74vw);
+    transform: translateX(-50%);
+    background: {panel_rgba} !important;
+    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    z-index: 0;
+    pointer-events: none;
+}}
+
+/* Streamlit content sits on top of the fixed center panel */
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     position: relative;
-    z-index: 1;
+    z-index: 2;
     max-width: min(1080px, 74vw) !important;
     min-height: 100vh !important;
     margin-left: auto !important;
     margin-right: auto !important;
     padding: 2.5rem 3rem 5rem 3rem !important;
-    background: {panel_rgba} !important;
-    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    background: transparent !important;
+}}
+
+/* Make long host controls scrollable */
+section[data-testid="stSidebar"] {{
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+}}
+
+section[data-testid="stSidebar"] > div:first-child,
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 5rem !important;
 }}
 
 @media (max-width: 900px) {{
+    [data-testid="stMain"]::before {{
+        width: 100%;
+    }}
+
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
         max-width: 100% !important;
