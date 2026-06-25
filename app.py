@@ -211,6 +211,22 @@ def has_game_code_in_url():
     return bool(sanitize_game_code(st.query_params.get("game", "")))
 
 
+def should_create_new_host_game():
+    """Return True when a host needs a fresh unique game code.
+
+    This prevents every host who opens ?view=host or ?view=host&game=default
+    from landing in the same shared default session. Hosts can also force a new
+    session with ?view=host&new=1 or the Start New Game button.
+    """
+    if st.query_params.get("view", "player") != "host":
+        return False
+
+    requested_code = sanitize_game_code(st.query_params.get("game", ""))
+    wants_new_game = str(st.query_params.get("new", "")).lower() in {"1", "true", "yes"}
+
+    return wants_new_game or not requested_code or requested_code == DEFAULT_GAME_CODE
+
+
 def generate_game_code():
     """Create a short readable game code, avoiding existing session files."""
     os.makedirs(SESSIONS_DIR, exist_ok=True)
@@ -348,9 +364,11 @@ def load_state():
 
 initial_view = st.query_params.get("view", "player")
 
-# If the host opens the host page without a game code, create one automatically
-# and put it in the URL. Players must have a game code to join a session.
-if initial_view == "host" and not has_game_code_in_url():
+# If the host opens the host page without a real game code, create one automatically
+# and put it in the URL. This makes each host device/session start a unique game.
+# Players must have a game code to join a session.
+if should_create_new_host_game():
+    st.query_params.clear()
     st.query_params["view"] = "host"
     st.query_params["game"] = generate_game_code()
     st.rerun()
@@ -876,6 +894,13 @@ if view == "host":
         ''',
         unsafe_allow_html=True,
     )
+
+    if st.button("Start New Game Session"):
+        st.query_params.clear()
+        st.query_params["view"] = "host"
+        st.query_params["game"] = generate_game_code()
+        st.rerun()
+
 elif not has_game_code:
     st.markdown(
         '<div class="info-card">Enter the game code from your host to join.</div>',
