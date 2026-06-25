@@ -1131,14 +1131,11 @@ has_game_code = has_game_code_in_url()
 # -----------------------------
 
 if view == "host":
-    host_id = get_host_id()
-    host_url = f"?view=host&game={game_code}&host={host_id}" if host_id else f"?view=host&game={game_code}"
     player_url = f"?view=player&game={game_code}"
     st.markdown(f"""
     <div class="info-card">
         <strong>Game Code:</strong> {game_code.upper()}<br>
-        <span class="small-note">Share this player link: <code>{player_url}</code></span><br>
-        <span class="small-note">Host link: <code>{host_url}</code></span>
+        <span class="small-note"><a href="{player_url}" target="_self">Open player join page</a></span>
     </div>
     """, unsafe_allow_html=True)
     if st.button("Start New Game Session"):
@@ -1273,16 +1270,75 @@ if view == "player":
 if view == "host":
     st.sidebar.header("Host Controls")
 
-    with st.sidebar.expander("Branding + Layout", expanded=True):
+    # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
+    with st.sidebar.expander("1. Event Theme + Preset Questions", expanded=True):
+        theme_names = list(THEMES.keys())
+        current_theme = state.get("theme", "Classic Party") if state.get("theme", "Classic Party") in theme_names else "Classic Party"
+        selected_theme = st.selectbox("Event Theme", theme_names, index=theme_names.index(current_theme))
+
+        if selected_theme != state.get("theme"):
+            state["theme"] = selected_theme
+            selected_colors = get_theme_colors({**state, "theme": selected_theme})
+
+            # Auto-match font colors to the selected event theme.
+            # Hosts can override these later in Branding + Layout.
+            state["title_color"] = selected_colors["primary"]
+            state["subtitle_color"] = selected_colors["secondary"]
+
+            if selected_theme != "Custom":
+                apply_theme_question_preset(state, selected_theme)
+            save_state(state)
+            st.rerun()
+
+        if selected_theme == "Custom":
+            st.caption("Build a custom color theme. Title/subtitle colors can still be overridden in Branding + Layout.")
+            custom_theme = default_custom_theme()
+            custom_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
+            for label, key in [
+                ("Page Background", "paper"), ("Card Background", "cream"), ("Primary", "primary"),
+                ("Secondary", "secondary"), ("Accent", "accent"), ("Border", "border"),
+                ("Highlight", "highlight"), ("Sidebar", "sidebar"),
+            ]:
+                custom_theme[key] = st.color_picker(label, custom_theme[key], key=f"custom_{key}")
+            if custom_theme != state.get("custom_theme"):
+                state["custom_theme"] = custom_theme
+                state["title_color"] = custom_theme["primary"]
+                state["subtitle_color"] = custom_theme["secondary"]
+                save_state(state)
+                st.rerun()
+        else:
+            st.caption("Changing the event theme automatically loads 20 matching preset questions and updates font colors.")
+            if st.button("Reload Preset Questions for This Event"):
+                apply_theme_question_preset(state, selected_theme)
+                save_state(state)
+                st.rerun()
+        st.caption(f"Questions: {state.get('questions_source', 'unknown')}")
+
+    # 2) Set game size before teams join/lock.
+    with st.sidebar.expander("2. Game Setup", expanded=True):
+        max_teams = st.number_input("Number of Teams Playing", min_value=2, max_value=20, value=int(state.get("max_teams", 4)), step=1, disabled=state.get("locked", False))
+        q_per_match = st.number_input("Questions per Match", min_value=1, max_value=10, value=int(state.get("questions_per_match", 3)), step=1, disabled=state.get("locked", False))
+        if state.get("locked", False):
+            st.caption("Unlock teams to change these settings.")
+        if not state.get("locked") and (max_teams != state.get("max_teams") or q_per_match != state.get("questions_per_match")):
+            state["max_teams"] = int(max_teams)
+            state["questions_per_match"] = int(q_per_match)
+            save_state(state)
+            st.rerun()
+
+    # 3) Optional branding overrides after the preset has been chosen.
+    with st.sidebar.expander("3. Branding + Layout", expanded=True):
+        theme_colors = get_theme_colors(state)
         new_title = st.text_input("Game Title", value=state.get("title", "Survey Style Interactive Party Game"))
         new_subtitle = st.text_input("Subtitle", value=state.get("subtitle", "Tournament Edition"))
         title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
         subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
-        title_color = st.color_picker("Title Color", state.get("title_color", get_theme_colors(state)["primary"]))
-        subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", get_theme_colors(state)["secondary"]))
-        panel_color = st.color_picker("Center Panel Color", state.get("panel_color", get_theme_colors(state)["cream"]))
+        title_color = st.color_picker("Title Color", state.get("title_color", theme_colors["primary"]))
+        subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", theme_colors["secondary"]))
+        panel_color = st.color_picker("Center Panel Color", state.get("panel_color", theme_colors["cream"]))
         panel_opacity = st.slider("Center Panel Opacity", 5, 95, int(float(state.get("panel_opacity", 0.20)) * 100)) / 100
         bg_upload = st.file_uploader("Upload Background Image", type=["png", "jpg", "jpeg", "webp"])
+
         changed = False
         for key, value in {
             "title": new_title,
@@ -1297,60 +1353,31 @@ if view == "host":
             if state.get(key) != value:
                 state[key] = value
                 changed = True
+
         if bg_upload is not None:
             encoded, mime = encode_uploaded_image(bg_upload)
             state["background_image"] = encoded
             state["background_mime"] = mime
             changed = True
-        if state.get("background_image") and st.button("Remove Background Image"):
-            state["background_image"] = ""
-            state["background_mime"] = "image/png"
-            changed = True
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("Use Theme Font Colors"):
+                state["title_color"] = theme_colors["primary"]
+                state["subtitle_color"] = theme_colors["secondary"]
+                changed = True
+        with col_b:
+            if state.get("background_image") and st.button("Remove Background"):
+                state["background_image"] = ""
+                state["background_mime"] = "image/png"
+                changed = True
+
         if changed:
             save_state(state)
             st.rerun()
 
-    with st.sidebar.expander("Event Theme + Preset Questions", expanded=True):
-        theme_names = list(THEMES.keys())
-        current_theme = state.get("theme", "Classic Party") if state.get("theme", "Classic Party") in theme_names else "Classic Party"
-        selected_theme = st.selectbox("Event Theme", theme_names, index=theme_names.index(current_theme))
-        if selected_theme != state.get("theme"):
-            state["theme"] = selected_theme
-            if selected_theme != "Custom":
-                apply_theme_question_preset(state, selected_theme)
-            save_state(state)
-            st.rerun()
-        if selected_theme == "Custom":
-            custom_theme = default_custom_theme()
-            custom_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
-            for label, key in [
-                ("Page Background", "paper"), ("Card Background", "cream"), ("Primary", "primary"),
-                ("Secondary", "secondary"), ("Accent", "accent"), ("Border", "border"),
-                ("Highlight", "highlight"), ("Sidebar", "sidebar"),
-            ]:
-                custom_theme[key] = st.color_picker(label, custom_theme[key], key=f"custom_{key}")
-            if custom_theme != state.get("custom_theme"):
-                state["custom_theme"] = custom_theme
-                save_state(state)
-                st.rerun()
-        else:
-            st.caption("Changing to an event theme automatically loads 20 matching preset questions.")
-            if st.button("Reload Preset Questions for This Event"):
-                apply_theme_question_preset(state, selected_theme)
-                save_state(state)
-                st.rerun()
-        st.caption(f"Questions: {state.get('questions_source', 'unknown')}")
-
-    with st.sidebar.expander("Tournament Settings", expanded=True):
-        max_teams = st.number_input("Number of Teams Playing", min_value=2, max_value=20, value=int(state.get("max_teams", 4)), step=1, disabled=state.get("locked", False))
-        q_per_match = st.number_input("Questions per Match", min_value=1, max_value=10, value=int(state.get("questions_per_match", 3)), step=1, disabled=state.get("locked", False))
-        if not state.get("locked") and (max_teams != state.get("max_teams") or q_per_match != state.get("questions_per_match")):
-            state["max_teams"] = int(max_teams)
-            state["questions_per_match"] = int(q_per_match)
-            save_state(state)
-            st.rerun()
-
-    with st.sidebar.expander("Custom Questions", expanded=False):
+    # 4) Bring your own questions, if desired.
+    with st.sidebar.expander("4. Custom Questions", expanded=False):
         st.caption("Required columns: game_type, question, answer, points. Use game_type values main or fast_money.")
         st.download_button("Download Question Template", data=question_template_csv(), file_name="survey_game_question_template.csv", mime="text/csv")
         uploaded_questions = st.file_uploader("Upload completed CSV template", type=["csv"])
@@ -1387,7 +1414,8 @@ if view == "host":
             except Exception as error:
                 st.error(f"Could not load questions from URL: {error}")
 
-    with st.sidebar.expander("Questions Preview", expanded=False):
+    # 5) Review questions after choosing a theme or uploading custom questions.
+    with st.sidebar.expander("5. Questions Preview", expanded=False):
         st.write(f"Main Questions: {len(state.get('questions', []))}")
         for i, item in enumerate(state.get("questions", []), start=1):
             with st.expander(f"{i}. {item.get('question', '')[:45]}"):
@@ -1397,7 +1425,8 @@ if view == "host":
         for i, item in enumerate(state.get("fast_money_questions", []), start=1):
             st.caption(f"{i}. {item.get('question', '')}")
 
-    with st.sidebar.expander("Teams + Bracket", expanded=True):
+    # 6) Lock teams and run the bracket.
+    with st.sidebar.expander("6. Teams + Bracket", expanded=True):
         st.write(f"Teams signed up: {len(state.get('teams', {}))}/{state.get('max_teams', 4)}")
         if not state.get("locked"):
             if st.button("Lock Teams + Build Bracket"):
