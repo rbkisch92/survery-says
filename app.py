@@ -1018,11 +1018,11 @@ section[data-testid="stSidebar"] {{
 }}
 
 /*
-   Recommended layout:
-   - The whole app has the uploaded image/color as the outside background.
-   - Streamlit's main content container becomes the centered game panel.
-   - The panel uses a solid host-selected color at 80% opacity = 20% transparent.
-   - min-height: 100vh makes the panel extend to the bottom of the viewport.
+   Fixed center-panel layout:
+   - The uploaded image/color lives on the outer app background.
+   - A fixed pseudo-element creates the center panel from top to bottom.
+   - The Streamlit content itself stays transparent and sits above that panel.
+   - This prevents the panel from ending early when Streamlit's content container is shorter than the page.
 */
 html, body, .stApp, [data-testid="stAppViewContainer"] {{
     min-height: 100vh !important;
@@ -1032,27 +1032,52 @@ html, body, .stApp, [data-testid="stAppViewContainer"] {{
 [data-testid="stAppViewContainer"] > .main {{
     background: transparent !important;
     min-height: 100vh !important;
+    position: relative !important;
+    z-index: 1 !important;
 }}
 
-/* Center game panel */
+/* Full-height center panel behind the content */
+.stApp::before {{
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1180px, calc(100vw - 120px));
+    min-height: 100vh;
+    background-color: rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.80);
+    border-left: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.90);
+    border-right: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.90);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+    z-index: 0;
+}}
+
+/* Streamlit content column: transparent, same width as the fixed panel */
 .block-container,
 [data-testid="stAppViewBlockContainer"] {{
     max-width: min(1180px, calc(100vw - 120px)) !important;
     width: min(1180px, calc(100vw - 120px)) !important;
     min-height: 100vh !important;
-    background-color: rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.80) !important;
+    background: transparent !important;
     background-image: none !important;
-    border-left: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.90) !important;
-    border-right: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.90) !important;
+    border: none !important;
     border-radius: 0 !important;
     padding: 2rem 2.5rem 4rem 2.5rem !important;
     margin: 0 auto !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18) !important;
-    backdrop-filter: blur(2px) !important;
+    box-shadow: none !important;
+    position: relative !important;
+    z-index: 2 !important;
 }}
 
 /* Keep phones usable: on small screens the center panel gets wider. */
 @media (max-width: 900px) {{
+    .stApp::before {{
+        width: calc(100vw - 24px);
+    }}
+
     .block-container,
     [data-testid="stAppViewBlockContainer"] {{
         width: calc(100vw - 24px) !important;
