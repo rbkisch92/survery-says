@@ -1017,7 +1017,7 @@ section[data-testid="stSidebar"] {{
    Center panel layout:
    - The uploaded background image stays on the outside page.
    - The game itself sits in a centered solid-color panel.
-   - 0.60 opacity = 40% transparent.
+   - 0.80 opacity = 20% transparent.
 */
 [data-testid="stAppViewContainer"] > .main {{
     background: transparent !important;
@@ -1627,7 +1627,7 @@ if view == "host":
             st.rerun()
 
     with st.sidebar.expander("Background Image", expanded=False):
-        st.caption("Upload a JPG/PNG/WebP image for the outer page background. The center game panel stays a 40% transparent solid theme color for readability.")
+        st.caption("Upload a JPG/PNG/WebP image for the outer page background. The center game panel stays a 20% transparent solid theme color for readability.")
         uploaded_background = st.file_uploader("Upload background image", type=["png", "jpg", "jpeg", "webp"], key="background_image_upload")
         if uploaded_background is not None and st.button("Use Uploaded Background"):
             image_bytes = uploaded_background.getvalue()
