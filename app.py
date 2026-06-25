@@ -26,6 +26,7 @@ except Exception:
 st.set_page_config(page_title="Baby Shower Feud", layout="wide")
 
 SESSIONS_DIR = "game_sessions"
+HOSTS_FILE = "host_sessions.json"
 DEFAULT_GAME_CODE = "default"
 GAME_CODE_LENGTH = 4
 FAST_MONEY_SECONDS = 45
@@ -196,6 +197,9 @@ def default_state():
         "fast_money_started": False,
         "fast_money_start_time": 0,
         "fast_money_answers": {},
+        "ended": False,
+        "ended_reason": "",
+        "ended_at": 0,
         "message": "Welcome to Baby Shower Family Feud!",
     }
 
@@ -236,6 +240,163 @@ def generate_game_code():
         if not os.path.exists(os.path.join(SESSIONS_DIR, f"{code.lower()}.json")):
             return code.lower()
     return str(int(time.time()))
+
+
+def generate_host_id():
+    """Create an ID that follows one host/browser via the URL."""
+    alphabet = string.ascii_lowercase + string.digits
+    return "h" + "".join(random.choice(alphabet) for _ in range(10))
+
+
+def get_host_id():
+    return sanitize_game_code(st.query_params.get("host", ""))
+
+
+def get_host_index_file():
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    return os.path.join(SESSIONS_DIR, HOSTS_FILE)
+
+
+def get_host_index_lock_file():
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    return os.path.join(SESSIONS_DIR, HOSTS_FILE + ".lock")
+
+
+@contextmanager
+def host_index_lock():
+    lock_path = get_host_index_lock_file()
+    lock_handle = open(lock_path, "w", encoding="utf-8")
+    try:
+        try:
+            import fcntl
+            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+        except Exception:
+            pass
+        yield
+    finally:
+        try:
+            try:
+                import fcntl
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+        finally:
+            lock_handle.close()
+
+
+def load_host_index_unlocked():
+    index_file = get_host_index_file()
+    if not os.path.exists(index_file):
+        return {}
+    try:
+        with open(index_file, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_host_index_unlocked(index):
+    index_file = get_host_index_file()
+    directory = os.path.dirname(index_file) or "."
+    fd, temp_path = tempfile.mkstemp(prefix="hosts_", suffix=".tmp", dir=directory, text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(index, file, indent=2)
+        os.replace(temp_path, index_file)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
+def get_state_file_for_code(game_code):
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    return os.path.join(SESSIONS_DIR, f"{sanitize_game_code(game_code)}.json")
+
+
+def end_game_session(game_code, reason="A new game session was started by this host."):
+    """Mark an existing session ended so old player links stop the game."""
+    safe_code = sanitize_game_code(game_code)
+    if not safe_code:
+        return
+
+    state_file = get_state_file_for_code(safe_code)
+    if not os.path.exists(state_file):
+        return
+
+    lock_path = os.path.join(SESSIONS_DIR, f"{safe_code}.lock")
+    lock_handle = open(lock_path, "w", encoding="utf-8")
+    try:
+        try:
+            import fcntl
+            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+        except Exception:
+            pass
+
+        try:
+            with open(state_file, "r", encoding="utf-8") as file:
+                old_state = json.load(file)
+        except Exception:
+            old_state = default_state()
+
+        old_state = migrate_state(old_state)
+        old_state["ended"] = True
+        old_state["ended_reason"] = reason
+        old_state["ended_at"] = int(time.time())
+        old_state["fast_money_started"] = False
+        old_state["message"] = reason
+
+        directory = os.path.dirname(state_file) or "."
+        fd, temp_path = tempfile.mkstemp(prefix="state_", suffix=".tmp", dir=directory, text=True)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as file:
+                json.dump(old_state, file, indent=2)
+            os.replace(temp_path, state_file)
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+    finally:
+        try:
+            try:
+                import fcntl
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+        finally:
+            lock_handle.close()
+
+
+def register_active_game_for_host(host_id, new_game_code):
+    """Save this host's active game and end their previous one."""
+    safe_host = sanitize_game_code(host_id)
+    safe_game = sanitize_game_code(new_game_code)
+    if not safe_host or not safe_game:
+        return
+
+    with host_index_lock():
+        index = load_host_index_unlocked()
+        previous_game = index.get(safe_host, {}).get("active_game")
+
+        if previous_game and previous_game != safe_game:
+            end_game_session(previous_game)
+
+        index[safe_host] = {
+            "active_game": safe_game,
+            "updated_at": int(time.time()),
+        }
+        save_host_index_unlocked(index)
+
+
+def create_new_host_session():
+    """Create a new host-owned game and mark the host's previous game ended."""
+    host_id = get_host_id() or generate_host_id()
+    new_code = generate_game_code()
+    register_active_game_for_host(host_id, new_code)
+
+    st.query_params.clear()
+    st.query_params["view"] = "host"
+    st.query_params["game"] = new_code
+    st.query_params["host"] = host_id
 
 
 def get_game_code():
@@ -365,12 +526,18 @@ def load_state():
 initial_view = st.query_params.get("view", "player")
 
 # If the host opens the host page without a real game code, create one automatically
-# and put it in the URL. This makes each host device/session start a unique game.
+# and put it in the URL. If this same host/browser already had an active game,
+# the previous game is marked ended so old player links cannot keep playing.
 # Players must have a game code to join a session.
 if should_create_new_host_game():
-    st.query_params.clear()
-    st.query_params["view"] = "host"
-    st.query_params["game"] = generate_game_code()
+    create_new_host_session()
+    st.rerun()
+
+# If a host has a game code but no host ID, add one so future new sessions can
+# end this host's previous game. This preserves the current game code.
+if st.query_params.get("view", "player") == "host" and has_game_code_in_url() and not get_host_id():
+    st.query_params["host"] = generate_host_id()
+    register_active_game_for_host(st.query_params["host"], get_game_code())
     st.rerun()
 
 state = load_state()
@@ -882,7 +1049,8 @@ game_code = get_game_code()
 has_game_code = has_game_code_in_url()
 
 if view == "host":
-    host_url = f"?view=host&game={game_code}"
+    host_id = get_host_id()
+    host_url = f"?view=host&game={game_code}&host={host_id}" if host_id else f"?view=host&game={game_code}"
     player_url = f"?view=player&game={game_code}"
     st.markdown(
         f'''
@@ -895,10 +1063,9 @@ if view == "host":
         unsafe_allow_html=True,
     )
 
+    st.caption("Starting a new session will automatically end this host's previous game session.")
     if st.button("Start New Game Session"):
-        st.query_params.clear()
-        st.query_params["view"] = "host"
-        st.query_params["game"] = generate_game_code()
+        create_new_host_session()
         st.rerun()
 
 elif not has_game_code:
@@ -921,6 +1088,15 @@ else:
         f'<div class="info-card"><strong>Game Code:</strong> {game_code.upper()}</div>',
         unsafe_allow_html=True,
     )
+
+if state.get("ended"):
+    ended_reason = state.get("ended_reason") or "This game session has ended because the host started a new session."
+    st.warning(ended_reason)
+    if view == "host":
+        if st.button("Create Another New Session"):
+            create_new_host_session()
+            st.rerun()
+    st.stop()
 
 if page == "bracket":
     render_bracket()
