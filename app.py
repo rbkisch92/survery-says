@@ -21,11 +21,11 @@ except Exception:
 
 
 # ============================================================
-# FAMILY FEUD
+# Survey-Style Party Game
 # Quickplay tournament + individual Fast Money championship
 # ============================================================
 
-st.set_page_config(page_title="Family Feud", layout="wide")
+st.set_page_config(page_title="Survey-Style Party Game", layout="wide")
 
 SESSIONS_DIR = "game_sessions"
 HOSTS_FILE = "host_sessions.json"
@@ -421,7 +421,7 @@ def default_state():
         "background_image_data": "",
         "background_image_mime": "",
         "center_panel_color": "",
-        "app_title": "Family Feud",
+        "app_title": "Survey-Style Party Game",
         "app_subtitle": "Tournament Edition",
         "theme": "Classic Party",
         "custom_theme": default_custom_theme(),
@@ -434,7 +434,7 @@ def default_state():
         "ended_reason": "",
         "ended_at": 0,
         "questions_source": "preset:Classic Party",
-        "message": "Welcome to Family Feud!",
+        "message": "Welcome to the Survey-Style Party Game!",
     }
 
 
@@ -742,7 +742,7 @@ def migrate_state(state):
     if not isinstance(state.get("center_panel_color"), str):
         state["center_panel_color"] = ""
     if not isinstance(state.get("app_title"), str) or not state.get("app_title", "").strip():
-        state["app_title"] = "Family Feud"
+        state["app_title"] = "Survey-Style Party Game"
     if not isinstance(state.get("app_subtitle"), str):
         state["app_subtitle"] = "Tournament Edition"
 
@@ -1352,7 +1352,7 @@ def render_question_preview():
 
 
 def render_header():
-    title = html.escape(state.get("app_title", "Family Feud"))
+    title = html.escape(state.get("app_title", "Survey-Style Party Game "))
     subtitle = html.escape(state.get("app_subtitle", "Tournament Edition"))
     st.markdown(f'<div class="main-title">{title}</div>', unsafe_allow_html=True)
     if subtitle:
@@ -1641,10 +1641,10 @@ if view == "host":
     st.sidebar.header("Host Controls")
 
     with st.sidebar.expander("Game Title", expanded=True):
-        new_title = st.text_input("Main title", value=state.get("app_title", "Family Feud"), max_chars=60)
+        new_title = st.text_input("Main title", value=state.get("app_title", "Survey-Style Party Game"), max_chars=60)
         new_subtitle = st.text_input("Subtitle", value=state.get("app_subtitle", "Tournament Edition"), max_chars=80)
         if new_title != state.get("app_title") or new_subtitle != state.get("app_subtitle"):
-            state["app_title"] = new_title.strip() or "Family Feud"
+            state["app_title"] = new_title.strip() or "Survey-Style Party Game"
             state["app_subtitle"] = new_subtitle.strip()
             save_state(state)
             st.rerun()
