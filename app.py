@@ -1,4 +1,5 @@
 import base64
+import html
 import json
 import os
 import random
@@ -320,17 +321,49 @@ EXTRA_EVENT_MAIN_QUESTIONS["Birthday Party"] = EXTRA_EVENT_MAIN_QUESTIONS["Class
 EXTRA_EVENT_MAIN_QUESTIONS["Holiday Party"] = EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"]
 
 
+GENERIC_FILLER_MAIN_QUESTIONS = [
+    {"question": "Name something people bring to a celebration.", "answers": [["Gift", 30], ["Food", 25], ["Drinks", 20], ["Dessert", 12], ["Camera", 8], ["Flowers", 5]]},
+    {"question": "Name something people do when they first arrive at a party.", "answers": [["Say hello", 35], ["Find food", 20], ["Get a drink", 18], ["Take photos", 12], ["Look for friends", 10], ["Put down bags", 5]]},
+    {"question": "Name something that makes a party more fun.", "answers": [["Music", 35], ["Games", 25], ["Food", 15], ["Drinks", 12], ["Decorations", 8], ["Dancing", 5]]},
+    {"question": "Name something people take pictures of at an event.", "answers": [["People", 30], ["Decor", 25], ["Food", 15], ["Cake", 12], ["Group photos", 10], ["Outfits", 8]]},
+    {"question": "Name something guests talk about after a party.", "answers": [["Food", 30], ["Music", 20], ["Decor", 18], ["People", 15], ["Games", 10], ["Drama", 7]]},
+    {"question": "Name something people forget before leaving for an event.", "answers": [["Gift", 30], ["Phone", 25], ["Wallet", 15], ["Keys", 12], ["Jacket", 10], ["Card", 8]]},
+    {"question": "Name something you might see on an invitation.", "answers": [["Date", 30], ["Time", 25], ["Location", 20], ["Names", 12], ["Dress code", 8], ["RSVP", 5]]},
+    {"question": "Name something that can go wrong at a party.", "answers": [["Bad weather", 25], ["Late guests", 20], ["Not enough food", 18], ["Spills", 15], ["Music issues", 12], ["Parking", 10]]},
+    {"question": "Name something people serve at a party.", "answers": [["Appetizers", 30], ["Dessert", 25], ["Drinks", 20], ["Cake", 12], ["Chips", 8], ["Fruit", 5]]},
+    {"question": "Name something guests do before they leave.", "answers": [["Say goodbye", 35], ["Take photos", 20], ["Thank host", 18], ["Grab favors", 12], ["Clean up", 10], ["Find keys", 5]]},
+    {"question": "Name something people wear to a themed party.", "answers": [["Dress", 25], ["Costume", 22], ["Matching shirt", 18], ["Hat", 15], ["Boots", 10], ["Accessories", 10]]},
+    {"question": "Name something a host worries about before guests arrive.", "answers": [["Food", 30], ["Cleaning", 25], ["Decor", 15], ["Timing", 12], ["Weather", 10], ["Parking", 8]]},
+    {"question": "Name something people put on a party table.", "answers": [["Food", 30], ["Drinks", 25], ["Plates", 18], ["Napkins", 12], ["Flowers", 10], ["Candles", 5]]},
+    {"question": "Name something that makes guests laugh.", "answers": [["Games", 30], ["Jokes", 25], ["Stories", 18], ["Photos", 12], ["Dancing", 10], ["Toasts", 5]]},
+    {"question": "Name something people do when music comes on.", "answers": [["Dance", 40], ["Sing", 20], ["Clap", 15], ["Record video", 10], ["Talk louder", 8], ["Request a song", 7]]},
+    {"question": "Name something people look for at a venue.", "answers": [["Bathroom", 30], ["Food", 20], ["Bar", 18], ["Seat", 15], ["Parking", 10], ["Host", 7]]},
+    {"question": "Name something that appears in party photos.", "answers": [["Smiles", 30], ["Decor", 25], ["Drinks", 15], ["Food", 12], ["Balloons", 10], ["Cake", 8]]},
+    {"question": "Name something people bring home from a party.", "answers": [["Favor", 30], ["Leftovers", 25], ["Photos", 20], ["Gift bag", 12], ["Flowers", 8], ["Memories", 5]]},
+    {"question": "Name something people do while waiting for food.", "answers": [["Talk", 35], ["Drink", 20], ["Take photos", 18], ["Play games", 12], ["Check phone", 10], ["Dance", 5]]},
+    {"question": "Name something people compliment at an event.", "answers": [["Decor", 30], ["Food", 25], ["Outfit", 18], ["Venue", 12], ["Cake", 10], ["Music", 5]]},
+]
+
+
 def extend_event_question_presets_to_20():
-    """Ensure each built-in event theme has up to 20 main questions available."""
+    """Ensure each built-in event theme has exactly 20 main questions available."""
     for theme_name, preset in EVENT_QUESTION_PRESETS.items():
+        preset.setdefault("main", [])
         extras = EXTRA_EVENT_MAIN_QUESTIONS.get(theme_name, EXTRA_EVENT_MAIN_QUESTIONS["Classic Party"])
         existing_questions = {q.get("question") for q in preset.get("main", [])}
-        for extra in extras:
+
+        for source in (extras, GENERIC_FILLER_MAIN_QUESTIONS):
+            for extra in source:
+                if len(preset["main"]) >= 20:
+                    break
+                if extra.get("question") not in existing_questions:
+                    preset["main"].append(json.loads(json.dumps(extra)))
+                    existing_questions.add(extra.get("question"))
             if len(preset["main"]) >= 20:
                 break
-            if extra.get("question") not in existing_questions:
-                preset["main"].append(extra)
-                existing_questions.add(extra.get("question"))
+
+        # Keep the built-in packs to exactly 20 main questions so the host preview is predictable.
+        preset["main"] = preset["main"][:20]
 
 
 extend_event_question_presets_to_20()
@@ -387,6 +420,8 @@ def default_state():
         "google_sheet_url": "",
         "background_image_data": "",
         "background_image_mime": "",
+        "app_title": "Family Feud",
+        "app_subtitle": "Tournament Edition",
         "theme": "Classic Party",
         "custom_theme": default_custom_theme(),
         "champion_team": "",
@@ -703,6 +738,10 @@ def migrate_state(state):
         state["background_image_data"] = ""
     if not isinstance(state.get("background_image_mime"), str):
         state["background_image_mime"] = ""
+    if not isinstance(state.get("app_title"), str) or not state.get("app_title", "").strip():
+        state["app_title"] = "Family Feud"
+    if not isinstance(state.get("app_subtitle"), str):
+        state["app_subtitle"] = "Tournament Edition"
 
     return state
 
@@ -745,6 +784,18 @@ if st.query_params.get("view", "player") == "host" and has_game_code_in_url() an
     st.rerun()
 
 state = load_state()
+
+
+def hex_to_rgb(hex_color, fallback=(255, 255, 255)):
+    value = str(hex_color or "").strip().lstrip("#")
+    if len(value) == 3:
+        value = "".join(ch * 2 for ch in value)
+    if len(value) != 6:
+        return fallback
+    try:
+        return tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
+    except Exception:
+        return fallback
 
 
 # -----------------------------
@@ -942,6 +993,7 @@ button[kind="primary"] *,
 
 # Apply the selected theme after the base CSS so it overrides the default colors.
 active_theme = get_theme_colors(state)
+center_panel_rgb = hex_to_rgb(active_theme.get("cream"), fallback=(255, 255, 255))
 st.markdown(
     f"""
 <style>
@@ -960,6 +1012,18 @@ st.markdown(
 section[data-testid="stSidebar"] {{
     background: {active_theme["sidebar"]} !important;
 }}
+
+/* Center game area: solid theme color with 40% transparency so uploaded backgrounds stay outside/behind it. */
+.block-container {{
+    background: rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.60) !important;
+    border: 1px solid rgba({center_panel_rgb[0]}, {center_panel_rgb[1]}, {center_panel_rgb[2]}, 0.75) !important;
+    border-radius: 28px !important;
+    padding: 2rem 2.5rem 3rem 2.5rem !important;
+    margin-top: 1rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08) !important;
+    backdrop-filter: blur(1px);
+}}
 </style>
 """,
     unsafe_allow_html=True,
@@ -972,7 +1036,7 @@ if state.get("background_image_data") and state.get("background_image_mime"):
         f"""
 <style>
 .stApp {{
-    background-image: linear-gradient(rgba(248, 245, 240, 0.72), rgba(248, 245, 240, 0.72)), url('data:{state["background_image_mime"]};base64,{state["background_image_data"]}') !important;
+    background-image: url('data:{state["background_image_mime"]};base64,{state["background_image_data"]}') !important;
     background-size: cover !important;
     background-position: center center !important;
     background-attachment: fixed !important;
@@ -1234,8 +1298,11 @@ def render_question_preview():
 
 
 def render_header():
-    st.markdown('<div class="main-title">Family Feud</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Tournament Edition</div>', unsafe_allow_html=True)
+    title = html.escape(state.get("app_title", "Family Feud"))
+    subtitle = html.escape(state.get("app_subtitle", "Tournament Edition"))
+    st.markdown(f'<div class="main-title">{title}</div>', unsafe_allow_html=True)
+    if subtitle:
+        st.markdown(f'<div class="subtitle">{subtitle}</div>', unsafe_allow_html=True)
 
 
 def render_answer_board():
@@ -1519,8 +1586,17 @@ if view == "player":
 if view == "host":
     st.sidebar.header("Host Controls")
 
+    with st.sidebar.expander("Game Title", expanded=True):
+        new_title = st.text_input("Main title", value=state.get("app_title", "Family Feud"), max_chars=60)
+        new_subtitle = st.text_input("Subtitle", value=state.get("app_subtitle", "Tournament Edition"), max_chars=80)
+        if new_title != state.get("app_title") or new_subtitle != state.get("app_subtitle"):
+            state["app_title"] = new_title.strip() or "Family Feud"
+            state["app_subtitle"] = new_subtitle.strip()
+            save_state(state)
+            st.rerun()
+
     with st.sidebar.expander("Background Image", expanded=False):
-        st.caption("Upload a JPG/PNG/WebP image to use as the game background for this session. Smaller images load faster for players.")
+        st.caption("Upload a JPG/PNG/WebP image for the outer page background. The center game panel stays a 40% transparent solid theme color for readability.")
         uploaded_background = st.file_uploader("Upload background image", type=["png", "jpg", "jpeg", "webp"], key="background_image_upload")
         if uploaded_background is not None and st.button("Use Uploaded Background"):
             image_bytes = uploaded_background.getvalue()
