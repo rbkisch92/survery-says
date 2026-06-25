@@ -19,11 +19,11 @@ except Exception:
 
 
 # ============================================================
-# BABY SHOWER FAMILY FEUD
+# FAMILY FEUD
 # Quickplay tournament + individual Fast Money championship
 # ============================================================
 
-st.set_page_config(page_title="Baby Shower Feud", layout="wide")
+st.set_page_config(page_title="Family Feud", layout="wide")
 
 SESSIONS_DIR = "game_sessions"
 HOSTS_FILE = "host_sessions.json"
@@ -32,59 +32,66 @@ GAME_CODE_LENGTH = 4
 FAST_MONEY_SECONDS = 45
 FUZZY_THRESHOLD = 78
 
-
-PRELOADED_TEAMS = [
-    "Roses",
-    "Peonies",
-    "Tulips",
-    "Hydrangeas",
-    "Daisies",
-    "Lilacs",
-    "Ranunculus",
-    "Wildflowers",
+QUESTION_TEMPLATE_ROWS = [
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Drinks", "points": 35},
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Food", "points": 25},
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Gift", "points": 15},
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Dessert", "points": 10},
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Flowers", "points": 8},
+    {"game_type": "main", "question": "Name something people bring to a party.", "answer": "Games", "points": 7},
+    {"game_type": "fast_money", "question": "Name something people do at a celebration.", "answer": "Dance", "points": 35},
+    {"game_type": "fast_money", "question": "Name something people forget to bring to an event.", "answer": "Gift", "points": 30},
+    {"game_type": "fast_money", "question": "Name something you see on a party table.", "answer": "Food", "points": 35},
+    {"game_type": "fast_money", "question": "Name a reason someone arrives late.", "answer": "Traffic", "points": 40},
+    {"game_type": "fast_money", "question": "Name something people take pictures of at a party.", "answer": "People", "points": 35},
 ]
+
+
+# Start with no teams so this can be reused for any party/theme.
+# Players can create teams from the player page before the host locks the game.
+PRELOADED_TEAMS = []
 
 
 DEFAULT_MAIN_QUESTIONS = [
     {
-        "question": "Name something parents always carry in a diaper bag.",
+        "question": "Name something people bring to a party.",
         "answers": [
-            ["Diapers", 35],
-            ["Wipes", 25],
-            ["Bottle", 15],
-            ["Snacks", 10],
-            ["Extra clothes", 8],
-            ["Pacifier", 7],
+            ["Drinks", 35],
+            ["Food", 25],
+            ["Gift", 15],
+            ["Dessert", 10],
+            ["Flowers", 8],
+            ["Games", 7],
         ],
     }
 ]
 
 DEFAULT_FAST_MONEY_QUESTIONS = [
     {
-        "question": "Name something parents do while the baby is sleeping.",
-        "answers": [["Sleep", 40], ["Clean", 25], ["Eat", 15], ["Shower", 10], ["Watch TV", 10]],
+        "question": "Name something people do at a celebration.",
+        "answers": [["Dance", 35], ["Eat", 25], ["Drink", 20], ["Talk", 12], ["Take pictures", 8]],
     },
     {
-        "question": "Name a baby item people forget to pack.",
-        "answers": [["Diapers", 35], ["Wipes", 25], ["Bottle", 20], ["Pacifier", 10], ["Extra clothes", 10]],
+        "question": "Name something people forget to bring to an event.",
+        "answers": [["Gift", 30], ["Phone", 25], ["Wallet", 20], ["Keys", 15], ["Jacket", 10]],
     },
     {
-        "question": "Name something babies hate.",
-        "answers": [["Bath time", 30], ["Diaper changes", 25], ["Car seat", 20], ["Loud noises", 15], ["Being put down", 10]],
+        "question": "Name something you see on a party table.",
+        "answers": [["Food", 35], ["Drinks", 25], ["Plates", 15], ["Flowers", 15], ["Candles", 10]],
     },
     {
-        "question": "Name something exhausted parents drink a lot of.",
-        "answers": [["Coffee", 50], ["Energy drinks", 20], ["Water", 12], ["Soda", 10], ["Tea", 8]],
+        "question": "Name a reason someone arrives late.",
+        "answers": [["Traffic", 40], ["Getting ready", 25], ["Lost", 15], ["Work", 10], ["Parking", 10]],
     },
     {
-        "question": "Name something babies wake up their parents for.",
-        "answers": [["Feeding", 35], ["Diaper change", 25], ["Crying", 20], ["Teething", 10], ["Comfort", 10]],
+        "question": "Name something people take pictures of at a party.",
+        "answers": [["People", 35], ["Decor", 25], ["Food", 15], ["Cake", 15], ["Group photo", 10]],
     },
 ]
 
 
 THEMES = {
-    "Baby Girl / Purple": {
+    "Purple": {
         "paper": "#F8F5F0",
         "cream": "#FFFAF8",
         "primary": "#6E5873",
@@ -94,7 +101,7 @@ THEMES = {
         "highlight": "#E8C7D0",
         "sidebar": "#F2EAF4",
     },
-    "Baby Boy / Blue": {
+    "Blue": {
         "paper": "#F5F9FD",
         "cream": "#FFFFFF",
         "primary": "#355C7D",
@@ -104,7 +111,7 @@ THEMES = {
         "highlight": "#C8E5FF",
         "sidebar": "#E7F2FB",
     },
-    "Sage Garden": {
+    "Sage": {
         "paper": "#F7F7F0",
         "cream": "#FFFDF8",
         "primary": "#59684A",
@@ -162,19 +169,17 @@ def default_custom_theme():
 
 
 def get_theme_colors(state):
-    selected_theme = state.get("theme", "Baby Girl / Purple")
+    selected_theme = state.get("theme", "Purple")
     if selected_theme == "Custom":
         custom = default_custom_theme()
         custom.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
         return custom
-    return THEMES.get(selected_theme, THEMES["Baby Girl / Purple"])
+    return THEMES.get(selected_theme, THEMES["Purple"])
 
 
 def default_state():
     return {
-        "teams": {
-            team: [] for team in PRELOADED_TEAMS
-        },
+        "teams": {},
         "locked": False,
         "matches": [],
         "current_match_index": 0,
@@ -190,7 +195,7 @@ def default_state():
         "questions": DEFAULT_MAIN_QUESTIONS,
         "fast_money_questions": DEFAULT_FAST_MONEY_QUESTIONS,
         "google_sheet_url": "",
-        "theme": "Baby Girl / Purple",
+        "theme": "Purple",
         "custom_theme": default_custom_theme(),
         "champion_team": "",
         "tournament_complete": False,
@@ -200,7 +205,7 @@ def default_state():
         "ended": False,
         "ended_reason": "",
         "ended_at": 0,
-        "message": "Welcome to Baby Shower Family Feud!",
+        "message": "Welcome to Family Feud!",
     }
 
 
@@ -491,12 +496,8 @@ def migrate_state(state):
         state["fast_money_questions"] = DEFAULT_FAST_MONEY_QUESTIONS
 
 
-    # Ensure preloaded teams always exist
-    for team in PRELOADED_TEAMS:
-        state["teams"].setdefault(team, [])
-
     if state.get("theme") not in THEMES:
-        state["theme"] = "Baby Girl / Purple"
+        state["theme"] = "Purple"
     if not isinstance(state.get("custom_theme"), dict):
         state["custom_theme"] = default_custom_theme()
 
@@ -783,8 +784,12 @@ def similarity(a, b):
     return int(SequenceMatcher(None, a, b).ratio() * 100)
 
 
-def load_questions_from_csv(csv_url):
-    df = pd.read_csv(csv_url)
+def question_template_csv():
+    return pd.DataFrame(QUESTION_TEMPLATE_ROWS).to_csv(index=False).encode("utf-8")
+
+
+def build_questions_from_dataframe(df):
+    df = df.copy()
     df.columns = [str(c).strip().lower() for c in df.columns]
 
     required = {"game_type", "question", "answer", "points"}
@@ -792,7 +797,10 @@ def load_questions_from_csv(csv_url):
     if missing:
         raise ValueError(f"Missing required columns: {', '.join(sorted(missing))}")
 
+    df = df.dropna(subset=["game_type", "question", "answer"])
     df["game_type"] = df["game_type"].astype(str).str.strip().str.lower()
+    df["question"] = df["question"].astype(str).str.strip()
+    df["answer"] = df["answer"].astype(str).str.strip()
 
     main_df = df[df["game_type"] == "main"].copy()
     fast_df = df[df["game_type"] == "fast_money"].copy()
@@ -806,8 +814,10 @@ def load_questions_from_csv(csv_url):
                     points = int(row["points"])
                 except Exception:
                     points = 0
-                answers.append([str(row["answer"]), points])
-            questions.append({"question": str(question_text), "answers": answers})
+                if row["answer"]:
+                    answers.append([str(row["answer"]), points])
+            if answers:
+                questions.append({"question": str(question_text), "answers": answers})
         return questions
 
     main_questions = build_questions(main_df)
@@ -820,6 +830,15 @@ def load_questions_from_csv(csv_url):
 
     return main_questions, fast_money_questions[:5]
 
+
+def load_questions_from_csv(csv_url):
+    df = pd.read_csv(csv_url)
+    return build_questions_from_dataframe(df)
+
+
+def load_questions_from_upload(uploaded_file):
+    df = pd.read_csv(uploaded_file)
+    return build_questions_from_dataframe(df)
 
 def build_initial_matches(team_names):
     names = list(team_names)
@@ -962,8 +981,8 @@ def timer_remaining():
 
 
 def render_header():
-    st.markdown('<div class="main-title">Baby Shower Family Feud</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Baby Shower Tournament Edition</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Family Feud</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Tournament Edition</div>', unsafe_allow_html=True)
 
 
 def render_answer_board():
@@ -1238,9 +1257,9 @@ if view == "host":
 
     with st.sidebar.expander("Appearance", expanded=True):
         theme_names = list(THEMES.keys())
-        current_theme_name = state.get("theme", "Baby Girl / Purple")
+        current_theme_name = state.get("theme", "Purple")
         if current_theme_name not in theme_names:
-            current_theme_name = "Baby Girl / Purple"
+            current_theme_name = "Purple"
 
         selected_theme = st.selectbox(
             "Color Theme",
@@ -1280,9 +1299,33 @@ if view == "host":
             save_state(state)
             st.rerun()
 
-    with st.sidebar.expander("Google Sheet Questions", expanded=True):
-        csv_url = st.text_input("Published CSV URL", value=state.get("google_sheet_url", ""))
-        if st.button("Load Questions"):
+    with st.sidebar.expander("Custom Questions", expanded=True):
+        st.caption("Use the CSV template below. Required columns: game_type, question, answer, points. Use game_type values main or fast_money.")
+        st.download_button(
+            "Download Question Template",
+            data=question_template_csv(),
+            file_name="family_feud_question_template.csv",
+            mime="text/csv",
+        )
+
+        uploaded_questions = st.file_uploader("Upload completed CSV template", type=["csv"])
+        if uploaded_questions is not None and st.button("Load Uploaded Questions"):
+            try:
+                main_qs, fast_qs = load_questions_from_upload(uploaded_questions)
+                state["questions"] = main_qs
+                state["fast_money_questions"] = fast_qs
+                state["google_sheet_url"] = ""
+                state["current_question_index"] = 0
+                reset_question_state()
+                save_state(state)
+                st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from CSV.")
+                st.rerun()
+            except Exception as error:
+                st.error(f"Could not load uploaded questions: {error}")
+
+        st.divider()
+        csv_url = st.text_input("Or paste a published Google Sheet CSV URL", value=state.get("google_sheet_url", ""))
+        if st.button("Load Questions from URL"):
             try:
                 main_qs, fast_qs = load_questions_from_csv(csv_url)
                 state["questions"] = main_qs
@@ -1291,10 +1334,10 @@ if view == "host":
                 state["current_question_index"] = 0
                 reset_question_state()
                 save_state(state)
-                st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions.")
+                st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from URL.")
                 st.rerun()
             except Exception as error:
-                st.error(f"Could not load questions: {error}")
+                st.error(f"Could not load questions from URL: {error}")
 
     with st.sidebar.expander("Teams + Bracket", expanded=True):
         st.write(f"Teams signed up: {len(state.get('teams', {}))}")
