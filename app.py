@@ -1,6 +1,8 @@
 import json
 import os
+import random
 import re
+import string
 import tempfile
 import time
 from contextlib import contextmanager
@@ -25,6 +27,7 @@ st.set_page_config(page_title="Baby Shower Feud", layout="wide")
 
 SESSIONS_DIR = "game_sessions"
 DEFAULT_GAME_CODE = "default"
+GAME_CODE_LENGTH = 4
 FAST_MONEY_SECONDS = 45
 FUZZY_THRESHOLD = 78
 
@@ -79,6 +82,93 @@ DEFAULT_FAST_MONEY_QUESTIONS = [
 ]
 
 
+THEMES = {
+    "Baby Girl / Purple": {
+        "paper": "#F8F5F0",
+        "cream": "#FFFAF8",
+        "primary": "#6E5873",
+        "secondary": "#A58BB7",
+        "accent": "#EADFED",
+        "border": "#D8C4DD",
+        "highlight": "#E8C7D0",
+        "sidebar": "#F2EAF4",
+    },
+    "Baby Boy / Blue": {
+        "paper": "#F5F9FD",
+        "cream": "#FFFFFF",
+        "primary": "#355C7D",
+        "secondary": "#5D8AA8",
+        "accent": "#D8EAF8",
+        "border": "#B8D5EA",
+        "highlight": "#C8E5FF",
+        "sidebar": "#E7F2FB",
+    },
+    "Sage Garden": {
+        "paper": "#F7F7F0",
+        "cream": "#FFFDF8",
+        "primary": "#59684A",
+        "secondary": "#7D8F68",
+        "accent": "#E4EAD8",
+        "border": "#C9D4B8",
+        "highlight": "#DDEBCB",
+        "sidebar": "#EEF3E6",
+    },
+    "Woodland Neutral": {
+        "paper": "#F8F6F0",
+        "cream": "#FFFDF8",
+        "primary": "#5B4B3A",
+        "secondary": "#8A765D",
+        "accent": "#E7E2D5",
+        "border": "#D2C7B8",
+        "highlight": "#D7E5C8",
+        "sidebar": "#F0EADF",
+    },
+    "Wildflower": {
+        "paper": "#FFFDF8",
+        "cream": "#FFFFFF",
+        "primary": "#4D5A4B",
+        "secondary": "#D29BB8",
+        "accent": "#E8D7E4",
+        "border": "#DCCBBF",
+        "highlight": "#F4E5A4",
+        "sidebar": "#F7EEF5",
+    },
+    "Sunflower": {
+        "paper": "#FFF9E8",
+        "cream": "#FFFFFF",
+        "primary": "#6A4A1F",
+        "secondary": "#C68B20",
+        "accent": "#F8E6A8",
+        "border": "#E6C66E",
+        "highlight": "#FFE08A",
+        "sidebar": "#FFF1C8",
+    },
+    "Custom": {
+        "paper": "#F8F5F0",
+        "cream": "#FFFAF8",
+        "primary": "#6E5873",
+        "secondary": "#A58BB7",
+        "accent": "#EADFED",
+        "border": "#D8C4DD",
+        "highlight": "#E8C7D0",
+        "sidebar": "#F2EAF4",
+    },
+}
+
+
+def default_custom_theme():
+    return THEMES["Custom"].copy()
+
+
+def get_theme_colors(state):
+    selected_theme = state.get("theme", "Baby Girl / Purple")
+    if selected_theme == "Custom":
+        custom = default_custom_theme()
+        custom.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
+        return custom
+    return THEMES.get(selected_theme, THEMES["Baby Girl / Purple"])
+
+
 def default_state():
     return {
         "teams": {
@@ -99,6 +189,8 @@ def default_state():
         "questions": DEFAULT_MAIN_QUESTIONS,
         "fast_money_questions": DEFAULT_FAST_MONEY_QUESTIONS,
         "google_sheet_url": "",
+        "theme": "Baby Girl / Purple",
+        "custom_theme": default_custom_theme(),
         "champion_team": "",
         "tournament_complete": False,
         "fast_money_started": False,
@@ -108,16 +200,36 @@ def default_state():
     }
 
 
+def sanitize_game_code(raw_code):
+    """Turn user-entered game codes into safe URL/file names."""
+    raw_code = str(raw_code or "").strip().lower()
+    safe_code = re.sub(r"[^a-z0-9_-]+", "-", raw_code).strip("-")
+    return safe_code
+
+
+def has_game_code_in_url():
+    return bool(sanitize_game_code(st.query_params.get("game", "")))
+
+
+def generate_game_code():
+    """Create a short readable game code, avoiding existing session files."""
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(100):
+        code = "".join(random.choice(alphabet) for _ in range(GAME_CODE_LENGTH))
+        if not os.path.exists(os.path.join(SESSIONS_DIR, f"{code.lower()}.json")):
+            return code.lower()
+    return str(int(time.time()))
+
+
 def get_game_code():
     """Return a safe game/session code from the URL.
 
     Example URLs:
-    ?view=host&game=smith-baby-shower
-    ?view=player&game=smith-baby-shower
+    ?view=host&game=a7k4
+    ?view=player&game=a7k4
     """
-    raw_code = str(st.query_params.get("game", DEFAULT_GAME_CODE)).strip().lower()
-    safe_code = re.sub(r"[^a-z0-9_-]+", "-", raw_code).strip("-")
-    return safe_code or DEFAULT_GAME_CODE
+    return sanitize_game_code(st.query_params.get("game", DEFAULT_GAME_CODE)) or DEFAULT_GAME_CODE
 
 
 def get_state_file():
@@ -206,6 +318,11 @@ def migrate_state(state):
     for team in PRELOADED_TEAMS:
         state["teams"].setdefault(team, [])
 
+    if state.get("theme") not in THEMES:
+        state["theme"] = "Baby Girl / Purple"
+    if not isinstance(state.get("custom_theme"), dict):
+        state["custom_theme"] = default_custom_theme()
+
     return state
 
 
@@ -228,6 +345,15 @@ def load_state():
         write_state_unlocked(state)
         return state
 
+
+initial_view = st.query_params.get("view", "player")
+
+# If the host opens the host page without a game code, create one automatically
+# and put it in the URL. Players must have a game code to join a session.
+if initial_view == "host" and not has_game_code_in_url():
+    st.query_params["view"] = "host"
+    st.query_params["game"] = generate_game_code()
+    st.rerun()
 
 state = load_state()
 
@@ -420,6 +546,31 @@ button[kind="primary"] *,
 [data-testid="stMetricValue"] {
     color: var(--dusty-rose) !important;
 }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+# Apply the selected theme after the base CSS so it overrides the default colors.
+active_theme = get_theme_colors(state)
+st.markdown(
+    f"""
+<style>
+:root {{
+    --paper: {active_theme["paper"]};
+    --cream: {active_theme["cream"]};
+    --plum: {active_theme["primary"]};
+    --lavender: {active_theme["secondary"]};
+    --soft-lavender: {active_theme["accent"]};
+    --border-lavender: {active_theme["border"]};
+    --dusty-rose: {active_theme["secondary"]};
+    --blush-pink: {active_theme["highlight"]};
+    --sage: {active_theme["secondary"]};
+}}
+
+section[data-testid="stSidebar"] {{
+    background: {active_theme["sidebar"]} !important;
+}}
 </style>
 """,
     unsafe_allow_html=True,
@@ -710,12 +861,41 @@ render_header()
 view = st.query_params.get("view", "player")
 page = st.query_params.get("page", "main")
 game_code = get_game_code()
+has_game_code = has_game_code_in_url()
 
-st.markdown(
-    f'<div class="info-card"><strong>Game session:</strong> {game_code}<br>'
-    f'<span class="small-note">Host URL: ?view=host&game={game_code} &nbsp; | &nbsp; Player URL: ?view=player&game={game_code}</span></div>',
-    unsafe_allow_html=True,
-)
+if view == "host":
+    host_url = f"?view=host&game={game_code}"
+    player_url = f"?view=player&game={game_code}"
+    st.markdown(
+        f'''
+        <div class="info-card">
+            <strong>Game Code:</strong> {game_code.upper()}<br>
+            <span class="small-note">Share this player link: <code>{player_url}</code></span><br>
+            <span class="small-note">Host link: <code>{host_url}</code></span>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+elif not has_game_code:
+    st.markdown(
+        '<div class="info-card">Enter the game code from your host to join.</div>',
+        unsafe_allow_html=True,
+    )
+    entered_code = st.text_input("Game code")
+    if st.button("Join Game"):
+        safe_code = sanitize_game_code(entered_code)
+        if not safe_code:
+            st.error("Enter a game code.")
+        else:
+            st.query_params["view"] = "player"
+            st.query_params["game"] = safe_code
+            st.rerun()
+    st.stop()
+else:
+    st.markdown(
+        f'<div class="info-card"><strong>Game Code:</strong> {game_code.upper()}</div>',
+        unsafe_allow_html=True,
+    )
 
 if page == "bracket":
     render_bracket()
@@ -843,6 +1023,50 @@ if view == "player":
 
 if view == "host":
     st.sidebar.header("Host Controls")
+
+    with st.sidebar.expander("Appearance", expanded=True):
+        theme_names = list(THEMES.keys())
+        current_theme_name = state.get("theme", "Baby Girl / Purple")
+        if current_theme_name not in theme_names:
+            current_theme_name = "Baby Girl / Purple"
+
+        selected_theme = st.selectbox(
+            "Color Theme",
+            theme_names,
+            index=theme_names.index(current_theme_name),
+        )
+
+        theme_changed = selected_theme != state.get("theme")
+        state["theme"] = selected_theme
+
+        if selected_theme == "Custom":
+            st.caption("Choose your own colors for this game session.")
+            custom_theme = default_custom_theme()
+            custom_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
+
+            custom_theme["paper"] = st.color_picker("Page Background", custom_theme["paper"])
+            custom_theme["cream"] = st.color_picker("Card Background", custom_theme["cream"])
+            custom_theme["primary"] = st.color_picker("Primary Text / Header", custom_theme["primary"])
+            custom_theme["secondary"] = st.color_picker("Secondary Accent", custom_theme["secondary"])
+            custom_theme["accent"] = st.color_picker("Button / Soft Accent", custom_theme["accent"])
+            custom_theme["border"] = st.color_picker("Borders", custom_theme["border"])
+            custom_theme["highlight"] = st.color_picker("Highlight / Hidden Answers", custom_theme["highlight"])
+            custom_theme["sidebar"] = st.color_picker("Sidebar Background", custom_theme["sidebar"])
+
+            if custom_theme != state.get("custom_theme"):
+                state["custom_theme"] = custom_theme
+                theme_changed = True
+
+        st.markdown(
+            f'<div class="info-card"><strong>Preview:</strong><br>'
+            f'<span style="color:{get_theme_colors(state)["primary"]};">Primary</span> • '
+            f'<span style="color:{get_theme_colors(state)["secondary"]};">Accent</span></div>',
+            unsafe_allow_html=True,
+        )
+
+        if theme_changed:
+            save_state(state)
+            st.rerun()
 
     with st.sidebar.expander("Google Sheet Questions", expanded=True):
         csv_url = st.text_input("Published CSV URL", value=state.get("google_sheet_url", ""))
