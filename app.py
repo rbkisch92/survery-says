@@ -977,36 +977,30 @@ html, body, .stApp {{
 }}
 
 /*
-   Full-height center panel fix:
-   The tinted panel is drawn as a fixed layer behind the Streamlit content,
-   so it always reaches the bottom of the visible page even when the app
-   content grows or the browser window is tall.
+   Center panel layout:
+   The panel is applied directly to Streamlit's main content container.
+   This keeps it perfectly centered and makes the transparent color extend
+   all the way to the bottom of the viewport/content.
 */
-[data-testid="stMain"]::before {{
-    content: "";
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: min(1080px, 74vw);
-    transform: translateX(-50%);
-    background: {panel_rgba} !important;
-    box-shadow: 0 0 35px rgba(0,0,0,0.08);
-    z-index: 0;
-    pointer-events: none;
+[data-testid="stMain"] {{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
 }}
 
-/* Streamlit content sits on top of the fixed center panel */
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     position: relative;
     z-index: 2;
-    max-width: min(1080px, 74vw) !important;
+    width: min(1120px, calc(100vw - 4rem)) !important;
+    max-width: min(1120px, calc(100vw - 4rem)) !important;
     min-height: 100vh !important;
     margin-left: auto !important;
     margin-right: auto !important;
     padding: 2.5rem 3rem 5rem 3rem !important;
-    background: transparent !important;
+    background: {panel_rgba} !important;
+    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    box-sizing: border-box !important;
 }}
 
 /* Make long host controls scrollable */
@@ -1026,13 +1020,11 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 }}
 
 @media (max-width: 900px) {{
-    [data-testid="stMain"]::before {{
-        width: 100%;
-    }}
-
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
+        width: 100% !important;
         max-width: 100% !important;
+        min-height: 100vh !important;
         padding: 1.5rem 1rem 4rem 1rem !important;
     }}
 }}
