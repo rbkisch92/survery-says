@@ -21,7 +21,7 @@ except Exception:
 # Quickplay tournament + individual Fast Money championship
 # ============================================================
 
-st.set_page_config(page_title="Baby in Bloom Feud", layout="wide")
+st.set_page_config(page_title="Baby Shower Family Feud", layout="wide")
 
 SESSIONS_DIR = "game_sessions"
 DEFAULT_GAME_CODE = "default"
