@@ -1069,16 +1069,64 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 }}
 
 @media (max-width: 900px) {{
+    html, body, .stApp {{
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }}
+
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {{
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        background: var(--paper) !important;
+        overflow-x: hidden !important;
+    }}
+
     [data-testid="stAppViewContainer"] {{
-        background: {panel_rgba} !important;
+        background: var(--paper) !important;
     }}
 
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        min-height: 100vh !important;
+        padding: 3.25rem 1rem 4rem 1rem !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }}
+
+    .main-title {{
+        font-size: clamp(34px, 11vw, 48px) !important;
+        line-height: 1.05 !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 0.25rem !important;
+        max-width: 100% !important;
+    }}
+
+    .subtitle {{
+        font-size: 20px !important;
+        margin-bottom: 1.5rem !important;
+        max-width: 100% !important;
+    }}
+
+    .info-card,
+    .bracket-card,
+    .score-card,
+    .question-card,
+    .answer-card,
+    .team-card,
+    .winner-card {{
         width: 100% !important;
         max-width: 100% !important;
-        min-height: 100vh !important;
-        padding: 1.5rem 1rem 4rem 1rem !important;
+        box-sizing: border-box !important;
+    }}
+
+    .stButton > button {{
+        width: 100% !important;
     }}
 }}
 
@@ -1288,7 +1336,7 @@ if view == "host":
         <span class="small-note"><a href="{player_url}" target="_self">Open player join page</a></span>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("Start New Game Session"):
+    if st.button("Start New Game Session", use_container_width=True):
         create_new_host_session()
         st.rerun()
 elif not has_game_code:
