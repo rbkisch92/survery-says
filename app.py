@@ -1482,6 +1482,249 @@ div[data-baseweb="textarea"] textarea {{
     }}
 }}
 
+
+/* Mobile-first game layout inspired by the approved mockup */
+.mobile-game-board {{
+    margin-top: 1.25rem;
+}}
+
+.question-kicker {{
+    margin-bottom: 0.65rem;
+    color: var(--modern-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+}}
+
+.answer-list {{
+    overflow: hidden;
+    margin-top: 1rem;
+    border: 1px solid var(--modern-border);
+    border-radius: 22px;
+    background: rgba(255,255,255,0.97);
+    box-shadow: 0 12px 34px rgba(73,55,47,0.09);
+}}
+
+.answer-row {{
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 48px;
+    align-items: center;
+    min-height: 68px;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(104,87,78,0.11);
+    font-family: 'Inter', Arial, sans-serif;
+}}
+
+.answer-row:last-child {{
+    border-bottom: 0;
+}}
+
+.answer-rank {{
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 999px;
+    background: #F0ECE9;
+    color: #4A403B;
+    font-weight: 750;
+}}
+
+.answer-name {{
+    overflow: hidden;
+    padding: 0 0.75rem;
+    color: var(--modern-text);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}}
+
+.answer-points {{
+    color: #9A6D59;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-align: right;
+}}
+
+.answer-row-hidden .answer-name,
+.answer-row-hidden .answer-points {{
+    color: #AAA09B;
+    font-weight: 500;
+}}
+
+.round-pill {{
+    width: fit-content;
+    margin: 1.1rem auto 1.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    background: #A98E80;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}}
+
+.mobile-scoreboard {{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0 1.4rem;
+}}
+
+.mobile-stat-card {{
+    min-width: 0;
+    padding: 1.1rem;
+    border: 1px solid var(--modern-border);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.96);
+    box-shadow: 0 8px 24px rgba(73,55,47,0.07);
+    text-align: center;
+}}
+
+.mobile-stat-label {{
+    overflow: hidden;
+    color: var(--modern-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}}
+
+.mobile-stat-value {{
+    margin: 0.35rem 0;
+    color: var(--modern-text);
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+}}
+
+.mobile-bank-card .mobile-stat-value {{
+    color: #A8735D;
+}}
+
+.mobile-stat-note {{
+    color: var(--modern-muted);
+    font-size: 0.76rem;
+}}
+
+.host-status-strip {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    margin-top: 1rem;
+}}
+
+.host-status-strip > div {{
+    padding: 0.9rem 0.55rem;
+    border: 1px solid var(--modern-border);
+    border-radius: 14px;
+    background: white;
+    text-align: center;
+}}
+
+.host-status-strip span {{
+    display: block;
+    color: var(--modern-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}}
+
+.host-status-strip strong {{
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--modern-text);
+    font-size: 1.2rem;
+}}
+
+.compact-team-row {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.55rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--modern-border);
+    border-radius: 14px;
+    background: white;
+}}
+
+.compact-team-row span {{
+    color: var(--modern-muted);
+    font-size: 0.85rem;
+}}
+
+.advanced-label {{
+    margin: 1.5rem 0 0.65rem;
+    color: var(--modern-muted);
+    font-size: 0.76rem;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}}
+
+div[data-testid="stDialog"] [data-baseweb="tab-list"] {{
+    gap: 0.4rem;
+    padding: 0.35rem;
+    border-radius: 14px;
+    background: #EEE9E6;
+}}
+
+div[data-testid="stDialog"] button[data-baseweb="tab"] {{
+    min-height: 44px;
+    border-radius: 11px;
+    font-weight: 700;
+}}
+
+@media (max-width: 700px) {{
+    .mobile-scoreboard {{
+        gap: 0.55rem;
+    }}
+
+    .mobile-stat-card {{
+        padding: 0.85rem 0.45rem;
+        border-radius: 15px;
+    }}
+
+    .mobile-stat-label {{
+        font-size: 0.65rem;
+    }}
+
+    .mobile-stat-value {{
+        font-size: 2rem;
+    }}
+
+    .mobile-stat-note {{
+        font-size: 0.65rem;
+    }}
+
+    .question-card {{
+        padding: 1.35rem 1rem !important;
+        font-size: clamp(1.25rem, 6vw, 1.8rem) !important;
+    }}
+
+    .answer-row {{
+        grid-template-columns: 40px minmax(0, 1fr) 42px;
+        min-height: 62px;
+        padding: 0.65rem 0.8rem;
+    }}
+
+    .answer-rank {{
+        width: 32px;
+        height: 32px;
+    }}
+
+    .answer-name {{
+        padding: 0 0.55rem;
+    }}
+
+    .host-status-strip {{
+        gap: 0.4rem;
+    }}
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1496,34 +1739,78 @@ def render_header(state):
 
 def render_answer_board(state):
     question = current_question(state)
-    st.markdown(f'<div class="question-card">{question["question"]}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <section class="mobile-game-board">
+            <div class="question-kicker">Survey question</div>
+            <div class="question-card">{question["question"]}</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    rows = []
     for idx, (answer, points) in enumerate(question["answers"]):
         if idx in state.get("revealed", []):
-            st.markdown(f'<div class="answer-tile"><span>{idx + 1}. {answer}</span><span>{points}</span></div>', unsafe_allow_html=True)
+            rows.append(f"""
+            <div class="answer-row answer-row-revealed">
+                <span class="answer-rank">{idx + 1}</span>
+                <span class="answer-name">{answer}</span>
+                <span class="answer-points">{points}</span>
+            </div>
+            """)
         else:
-            st.markdown(f'<div class="answer-tile answer-hidden">{idx + 1}</div>', unsafe_allow_html=True)
+            rows.append(f"""
+            <div class="answer-row answer-row-hidden">
+                <span class="answer-rank">{idx + 1}</span>
+                <span class="answer-name">Tap to reveal</span>
+                <span class="answer-points">—</span>
+            </div>
+            """)
+
+    st.markdown(
+        '<div class="answer-list">' + "".join(rows) + '</div>'
+        f'<div class="round-pill">Round {state.get("match_question_number", 1)} of {state.get("questions_per_match", 3)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_scoreboard(state):
     teams = [t for t in state.get("active_teams", []) if t != "BYE"]
     if not teams:
         return
-    cols = st.columns(len(teams) + 1)
-    for idx, team in enumerate(teams):
-        cols[idx].markdown(f"""
-        <div class="score-card">
-            <div>{team}</div>
-            <div class="score-number">{state['match_scores'].get(team, 0)}</div>
-            <div class="small-note">match points</div>
+
+    cards = []
+    for team in teams[:2]:
+        cards.append(f"""
+        <div class="mobile-stat-card">
+            <div class="mobile-stat-label">{team}</div>
+            <div class="mobile-stat-value">{state['match_scores'].get(team, 0)}</div>
+            <div class="mobile-stat-note">Match points</div>
         </div>
-        """, unsafe_allow_html=True)
-    cols[-1].markdown(f"""
-    <div class="score-card">
-        <div>Round Bank</div>
-        <div class="score-number">{state.get('round_bank', 0)}</div>
-        <div class="small-note">Q {state.get('match_question_number', 1)}/{state.get('questions_per_match', 3)}</div>
+        """)
+
+    while len(cards) < 2:
+        cards.append("""
+        <div class="mobile-stat-card">
+            <div class="mobile-stat-label">Waiting</div>
+            <div class="mobile-stat-value">—</div>
+            <div class="mobile-stat-note">Match points</div>
+        </div>
+        """)
+
+    bank_card = f"""
+    <div class="mobile-stat-card mobile-bank-card">
+        <div class="mobile-stat-label">Round bank</div>
+        <div class="mobile-stat-value">{state.get('round_bank', 0)}</div>
+        <div class="mobile-stat-note">Question {state.get('match_question_number', 1)} of {state.get('questions_per_match', 3)}</div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+
+    st.markdown(
+        '<div class="mobile-scoreboard">' + "".join(cards) + bank_card + '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_bracket(state):
@@ -1762,6 +2049,115 @@ if view == "host":
             )
 
         st.markdown("### Host Control Center")
+
+        game_tab, teams_tab, more_tab = st.tabs(["Game", "Teams", "Settings"])
+
+        with game_tab:
+            st.caption("Quick controls for running the current round.")
+
+            if state.get("locked") and not state.get("tournament_complete"):
+                q_cur = current_question(state)
+                unrevealed = [
+                    (idx, answer, points)
+                    for idx, (answer, points) in enumerate(q_cur["answers"])
+                    if idx not in state.get("revealed", [])
+                ]
+
+                if unrevealed:
+                    next_idx, next_answer, next_points = unrevealed[0]
+                    if st.button(
+                        "👁 Reveal Next Answer",
+                        type="primary",
+                        use_container_width=True,
+                        key="quick_reveal_next",
+                    ):
+                        state["revealed"].append(next_idx)
+                        state["round_bank"] += int(next_points)
+                        state["message"] = f"{next_answer} is on the board!"
+                        save_state(state)
+                        st.rerun()
+                else:
+                    st.info("All answers have been revealed.")
+
+                strike_col, reset_col = st.columns(2)
+                with strike_col:
+                    if st.button("✕ Strike", use_container_width=True, key="quick_strike"):
+                        state["strike"] = True
+                        state["steal_mode"] = True
+                        state["message"] = "Strike! The other team gets one chance to steal."
+                        save_state(state)
+                        st.rerun()
+                with reset_col:
+                    if st.button("↺ Reset Question", use_container_width=True, key="quick_reset"):
+                        reset_question_state(state)
+                        save_state(state)
+                        st.rerun()
+
+                active = [t for t in state.get("active_teams", []) if t != "BYE"]
+                if active:
+                    award_cols = st.columns(len(active))
+                    for team, col in zip(active, award_cols):
+                        with col:
+                            if st.button(
+                                f"Award {team}",
+                                use_container_width=True,
+                                key=f"quick_award_{team}",
+                            ):
+                                award_bank(state, team)
+                                save_state(state)
+                                st.rerun()
+
+                next_col, end_col = st.columns(2)
+                with next_col:
+                    if st.button(
+                        "Next Question →",
+                        type="primary",
+                        use_container_width=True,
+                        key="quick_next_question",
+                    ):
+                        advance_question_in_match(state)
+                        save_state(state)
+                        st.rerun()
+                with end_col:
+                    if st.button(
+                        "End Match",
+                        use_container_width=True,
+                        key="quick_end_match",
+                    ):
+                        end_match_and_advance(state)
+                        save_state(state)
+                        st.rerun()
+
+                st.markdown(
+                    f"""
+                    <div class="host-status-strip">
+                        <div><span>Round bank</span><strong>{state.get('round_bank', 0)}</strong></div>
+                        <div><span>Question</span><strong>{state.get('match_question_number', 1)} / {state.get('questions_per_match', 3)}</strong></div>
+                        <div><span>Teams</span><strong>{len(active)}</strong></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            elif state.get("tournament_complete"):
+                st.success(f"Champion: {state.get('champion_team')}")
+            else:
+                st.info("Lock teams and build the bracket to activate game controls.")
+
+        with teams_tab:
+            st.write(f"Teams joined: **{len(state.get('teams', {}))} / {state.get('max_teams', 4)}**")
+            if state.get("teams"):
+                for team_name, team_data in state.get("teams", {}).items():
+                    st.markdown(
+                        f'<div class="compact-team-row"><strong>{team_name}</strong><span>{len(team_data.get("players", [])) if isinstance(team_data, dict) else 0} players</span></div>',
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.caption("No teams have joined yet.")
+
+        with more_tab:
+            st.caption("Detailed setup, branding, questions, and tournament controls are below.")
+
+        st.markdown('<div class="advanced-label">Advanced controls</div>', unsafe_allow_html=True)
 
         # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
         with st.expander("1. Event Theme + Preset Questions", expanded=True):
