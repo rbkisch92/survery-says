@@ -1069,33 +1069,23 @@ html, body, .stApp {{
 }}
 
 [data-testid="stMain"]::before {{
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(1120px, calc(100vw - 4rem));
-    min-height: 100vh;
-    background: {panel_rgba};
-    box-shadow: 0 0 35px rgba(0,0,0,0.08);
-    pointer-events: none;
-    z-index: 1;
+    display: none !important;
 }}
 
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     position: relative;
     z-index: 2;
-    align-self: stretch !important;
+    align-self: flex-start !important;
     width: min(1120px, calc(100vw - 4rem)) !important;
     max-width: min(1120px, calc(100vw - 4rem)) !important;
-    min-height: 100vh !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 2.5rem 3rem 5rem 3rem !important;
-    background: transparent !important;
-    box-shadow: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 1.5rem auto 3rem auto !important;
+    padding: 2.5rem 3rem 3rem 3rem !important;
+    background: {panel_rgba} !important;
+    border-radius: 28px !important;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.08) !important;
     box-sizing: border-box !important;
 }}
 
@@ -1130,17 +1120,19 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
     }}
 
     [data-testid="stMain"]::before {{
-        width: 100% !important;
+        display: none !important;
     }}
 
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: 100vh !important;
-        min-height: 100dvh !important;
+        width: calc(100% - 1rem) !important;
+        max-width: calc(100% - 1rem) !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0.5rem auto 2rem auto !important;
         /* Keep the heading below Streamlit's mobile toolbar. */
-        padding: 5.25rem 1rem 4rem 1rem !important;
+        padding: 5.25rem 1rem 2.5rem 1rem !important;
+        border-radius: 20px !important;
     }}
 
     .main-title {{
