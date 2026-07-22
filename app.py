@@ -1139,7 +1139,20 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
         max-width: 100% !important;
         min-height: 100vh !important;
         min-height: 100dvh !important;
-        padding: 1.5rem 1rem 4rem 1rem !important;
+        /* Keep the heading below Streamlit's mobile toolbar. */
+        padding: 5.25rem 1rem 4rem 1rem !important;
+    }}
+
+    .main-title {{
+        font-size: clamp(30px, 9vw, {title_size}px) !important;
+        line-height: 1.12 !important;
+        margin-top: 0 !important;
+        padding-top: 0.25rem;
+    }}
+
+    .subtitle {{
+        font-size: clamp(16px, 5vw, {subtitle_size}px) !important;
+        margin-bottom: 1.5rem;
     }}
 }}
 
