@@ -42,14 +42,14 @@ FUZZY_THRESHOLD = 78
 
 THEMES = {
     "Classic Party": {
-        "paper": "#F4F1EF",
+        "paper": "#F7F3F0",
         "cream": "#FFFFFF",
-        "primary": "#2F2926",
-        "secondary": "#8A756C",
-        "accent": "#E9D6CD",
+        "primary": "#2E2926",
+        "secondary": "#8F7A6F",
+        "accent": "#EDE6E1",
         "border": "#DDD4CF",
-        "highlight": "#D9B29E",
-        "sidebar": "#F8F5F3",
+        "highlight": "#A88F80",
+        "sidebar": "#FAF8F6",
     },
     "Baby Shower - Boy": {
         "paper": "#F5F9FD", "cream": "#FFFFFF", "primary": "#355C7D", "secondary": "#5D8AA8",
@@ -393,8 +393,8 @@ def default_state():
         "body_font": "Verdana",
         "title_size": 56,
         "subtitle_size": 24,
-        "title_color": "#2F2926",
-        "subtitle_color": "#8A756C",
+        "title_color": "#2E2926",
+        "subtitle_color": "#8F7A6F",
         "panel_color": "#FFFAF8",
         "panel_opacity": 0.20,
         "background_image": "",
@@ -598,8 +598,11 @@ def migrate_state(state):
     # Migrate older default branding colors to the current modern palette.
     if state.get("title_color") in {"#6E5873", "#111827"}:
         state["title_color"] = "#2F2926"
-    if state.get("subtitle_color") in {"#A58BB7", "#64748B"}:
-        state["subtitle_color"] = "#8A756C"
+    if state.get("subtitle_color") in {"#A58BB7", "#64748B", "#8A756C"}:
+        state["subtitle_color"] = "#8F7A6F"
+
+    if state.get("title_color") in {"#6E5873", "#111827", "#2F2926"}:
+        state["title_color"] = "#2E2926"
     if not state.get("questions"):
         state["questions"] = preset_questions_for_theme(state.get("theme", "Classic Party"))[0]
     if not state.get("fast_money_questions"):
@@ -1722,6 +1725,297 @@ div[data-testid="stDialog"] button[data-baseweb="tab"] {{
 
     .host-status-strip {{
         gap: 0.4rem;
+    }}
+}}
+
+
+/* Exact warm-neutral UI system from the approved mobile mockup */
+:root {{
+    --mockup-bg: #F7F3F0;
+    --mockup-surface: #FFFFFF;
+    --mockup-text: #2E2926;
+    --mockup-muted: #8F7A6F;
+    --mockup-accent: #A88F80;
+    --mockup-accent-dark: #92796B;
+    --mockup-soft: #EDE6E1;
+    --mockup-border: #DDD4CF;
+    --mockup-shadow: 0 10px 30px rgba(65, 51, 44, 0.10);
+}}
+
+/* Remove remaining blue Streamlit accents */
+a,
+a:visited,
+[data-testid="stMarkdownContainer"] a,
+[data-testid="stLinkButton"] a {{
+    color: #8F6F60 !important;
+    text-decoration-color: rgba(143,111,96,0.35) !important;
+}}
+
+a:hover,
+[data-testid="stMarkdownContainer"] a:hover {{
+    color: #76584B !important;
+}}
+
+.stButton button,
+button[kind="primary"],
+button[data-testid="baseButton-primary"],
+[data-testid="stFormSubmitButton"] button {{
+    background: #A88F80 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #A88F80 !important;
+    box-shadow: 0 7px 18px rgba(112, 83, 68, 0.16) !important;
+}}
+
+.stButton button:hover,
+button[kind="primary"]:hover,
+button[data-testid="baseButton-primary"]:hover,
+[data-testid="stFormSubmitButton"] button:hover {{
+    background: #92796B !important;
+    border-color: #92796B !important;
+    color: #FFFFFF !important;
+}}
+
+.stButton button:focus,
+button:focus-visible,
+a:focus-visible,
+input:focus,
+textarea:focus,
+select:focus,
+[role="tab"]:focus-visible {{
+    outline: 3px solid rgba(168,143,128,0.30) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(168,143,128,0.20) !important;
+}}
+
+button[kind="secondary"],
+button[data-testid="baseButton-secondary"] {{
+    background: #FFFFFF !important;
+    color: #4A403B !important;
+    border: 1px solid #DDD4CF !important;
+    box-shadow: 0 5px 15px rgba(65,51,44,0.07) !important;
+}}
+
+button[kind="secondary"]:hover,
+button[data-testid="baseButton-secondary"]:hover {{
+    background: #F3EEEA !important;
+    color: #2E2926 !important;
+    border-color: #CBBDB5 !important;
+}}
+
+/* Tabs */
+div[data-baseweb="tab-list"] {{
+    background: #EEE8E4 !important;
+}}
+
+button[data-baseweb="tab"] {{
+    color: #7A6A62 !important;
+}}
+
+button[data-baseweb="tab"][aria-selected="true"] {{
+    background: #FFFFFF !important;
+    color: #2E2926 !important;
+    box-shadow: 0 3px 10px rgba(65,51,44,0.08) !important;
+}}
+
+div[data-baseweb="tab-highlight"] {{
+    background-color: #A88F80 !important;
+}}
+
+/* Inputs, selects, text areas */
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input,
+div[data-baseweb="input"] input,
+div[data-baseweb="textarea"] textarea,
+div[data-baseweb="select"] > div {{
+    background: #FFFFFF !important;
+    color: #2E2926 !important;
+    border-color: #DDD4CF !important;
+}}
+
+.stTextInput input:focus,
+.stTextArea textarea:focus,
+.stNumberInput input:focus,
+div[data-baseweb="input"] input:focus,
+div[data-baseweb="textarea"] textarea:focus,
+div[data-baseweb="select"] > div:focus-within {{
+    border-color: #A88F80 !important;
+    box-shadow: 0 0 0 3px rgba(168,143,128,0.16) !important;
+}}
+
+/* Sliders */
+div[data-testid="stSlider"] [role="slider"] {{
+    background: #A88F80 !important;
+    border-color: #A88F80 !important;
+}}
+
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div {{
+    background-color: #D9CBC3 !important;
+}}
+
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div > div {{
+    background-color: #A88F80 !important;
+}}
+
+/* Checkboxes, radios and toggles */
+input[type="checkbox"],
+input[type="radio"] {{
+    accent-color: #A88F80 !important;
+}}
+
+div[data-baseweb="checkbox"] div[aria-checked="true"],
+div[data-baseweb="radio"] div[aria-checked="true"] {{
+    background-color: #A88F80 !important;
+    border-color: #A88F80 !important;
+}}
+
+button[role="switch"][aria-checked="true"] {{
+    background-color: #A88F80 !important;
+}}
+
+/* Progress bars */
+div[data-testid="stProgress"] > div > div > div {{
+    background-color: #A88F80 !important;
+}}
+
+/* Metrics and status elements */
+[data-testid="stMetricValue"] {{
+    color: #2E2926 !important;
+}}
+
+[data-testid="stMetricLabel"],
+[data-testid="stMetricDelta"] {{
+    color: #8F7A6F !important;
+}}
+
+div[data-testid="stAlert"] {{
+    background: #F4EEEA !important;
+    color: #4A403B !important;
+    border: 1px solid #DDD4CF !important;
+}}
+
+/* Expander styling */
+[data-testid="stExpander"] summary:hover {{
+    color: #2E2926 !important;
+    background: #F4EFEC !important;
+}}
+
+[data-testid="stExpander"] svg {{
+    color: #8F7A6F !important;
+}}
+
+/* File uploader */
+[data-testid="stFileUploaderDropzone"] {{
+    background: #FAF8F6 !important;
+    border-color: #CFC2BA !important;
+}}
+
+[data-testid="stFileUploaderDropzone"] button {{
+    background: #A88F80 !important;
+    color: #FFFFFF !important;
+    border-color: #A88F80 !important;
+}}
+
+/* Dialog / host control overlay */
+div[data-testid="stDialog"] > div {{
+    background: #FBF9F7 !important;
+}}
+
+div[data-testid="stDialog"] header,
+div[data-testid="stDialog"] [data-testid="stHeadingWithActionElements"] {{
+    color: #2E2926 !important;
+}}
+
+div[data-testid="stDialog"] [aria-label="Close"] {{
+    color: #6F5E55 !important;
+}}
+
+/* Game screen exact palette */
+.main-title {{
+    color: #2E2926 !important;
+}}
+
+.subtitle {{
+    color: #8F7A6F !important;
+}}
+
+.question-card,
+.answer-list,
+.mobile-stat-card,
+.host-status-strip > div,
+.compact-team-row {{
+    background: #FFFFFF !important;
+    border-color: #DDD4CF !important;
+    box-shadow: var(--mockup-shadow) !important;
+}}
+
+.question-kicker,
+.mobile-stat-label,
+.mobile-stat-note,
+.small-note,
+.advanced-label {{
+    color: #8F7A6F !important;
+}}
+
+.answer-rank {{
+    background: #F0ECE9 !important;
+    color: #4A403B !important;
+}}
+
+.answer-points,
+.mobile-bank-card .mobile-stat-value {{
+    color: #92705F !important;
+}}
+
+.round-pill {{
+    background: #A88F80 !important;
+    color: #FFFFFF !important;
+}}
+
+.answer-row-hidden .answer-name,
+.answer-row-hidden .answer-points {{
+    color: #AAA09B !important;
+}}
+
+/* Remove blue selection/focus fill where browsers expose it */
+::selection {{
+    background: rgba(168,143,128,0.28);
+    color: #2E2926;
+}}
+
+/* Mobile spacing and card proportions to match the reference */
+@media (max-width: 700px) {{
+    [data-testid="stMainBlockContainer"] {{
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }}
+
+    .main-title {{
+        font-size: clamp(2rem, 10vw, 3.1rem) !important;
+        margin-top: 2.5rem !important;
+    }}
+
+    .subtitle {{
+        font-size: 1rem !important;
+    }}
+
+    .question-card {{
+        border-radius: 20px !important;
+        box-shadow: 0 10px 28px rgba(65,51,44,0.09) !important;
+    }}
+
+    .answer-list {{
+        border-radius: 20px !important;
+    }}
+
+    .mobile-scoreboard {{
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }}
+
+    div[data-testid="stDialog"] > div {{
+        width: calc(100vw - 1rem) !important;
+        max-width: calc(100vw - 1rem) !important;
+        border-radius: 24px !important;
     }}
 }}
 
