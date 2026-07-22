@@ -1735,180 +1735,261 @@ if view == "host":
 
         st.markdown("### Host Control Center")
 
-        # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
-        with st.expander("1. Event Theme + Preset Questions", expanded=True):
+        # 1) Choose a preset first. This loads the matching design and question pack.
+        with st.expander("1. Preset Theme + Questions", expanded=True):
             theme_names = list(THEMES.keys())
-            current_theme = state.get("theme", "Classic Party") if state.get("theme", "Classic Party") in theme_names else "Classic Party"
-            selected_theme = st.selectbox("Event Theme", theme_names, index=theme_names.index(current_theme))
+            current_theme = state.get("theme", "Classic Party")
+            if current_theme not in theme_names:
+                current_theme = "Classic Party"
+
+            selected_theme = st.selectbox(
+                "Preset Theme",
+                theme_names,
+                index=theme_names.index(current_theme),
+                key="host_preset_theme",
+            )
 
             if selected_theme != state.get("theme"):
                 state["theme"] = selected_theme
                 state["theme_overrides"] = {}
                 selected_colors = THEMES.get(selected_theme, THEMES["Classic Party"])
-
-                # Auto-match font colors to the selected event theme.
-                # Hosts can override these later in Branding + Layout.
                 state["title_color"] = selected_colors["primary"]
                 state["subtitle_color"] = selected_colors["secondary"]
+                state["panel_color"] = selected_colors["cream"]
 
                 if selected_theme != "Custom":
                     apply_theme_question_preset(state, selected_theme)
                 save_state(state)
+
+                # Clear editor widget values so the newly selected preset is shown.
+                for _, color_key in THEME_COLOR_FIELDS:
+                    st.session_state.pop(f"editor_theme_{color_key}", None)
+                for widget_key in (
+                    "editor_title_color", "editor_subtitle_color", "editor_panel_color"
+                ):
+                    st.session_state.pop(widget_key, None)
                 st.rerun()
 
-            st.caption("Choose an event theme as your starting point. You can customize colors and fonts in Branding + Layout without switching to Custom.")
+            st.caption(
+                "Start with a preset, then personalize the background, text and colors below."
+            )
             if selected_theme != "Custom":
-                if st.button("Reload Preset Questions for This Event"):
+                if st.button("Reload Preset Questions", key="reload_preset_questions"):
                     apply_theme_question_preset(state, selected_theme)
                     save_state(state)
                     st.rerun()
-            st.caption(f"Questions: {state.get('questions_source', 'unknown')}")
+            st.caption(f"Current questions: {state.get('questions_source', 'unknown')}")
 
-        # 2) Set game size before teams join/lock.
-        with st.expander("2. Game Setup", expanded=True):
-            max_teams = st.number_input("Number of Teams Playing", min_value=2, max_value=20, value=int(state.get("max_teams", 4)), step=1, disabled=state.get("locked", False))
-            q_per_match = st.number_input("Questions per Match", min_value=1, max_value=10, value=int(state.get("questions_per_match", 3)), step=1, disabled=state.get("locked", False))
-            if state.get("locked", False):
-                st.caption("Unlock teams to change these settings.")
-            if not state.get("locked") and (max_teams != state.get("max_teams") or q_per_match != state.get("questions_per_match")):
-                state["max_teams"] = int(max_teams)
-                state["questions_per_match"] = int(q_per_match)
+        # 2) Upload and adjust the background before editing the rest of the design.
+        with st.expander("2. Background Upload", expanded=True):
+            with st.form("background_editor_form", clear_on_submit=False):
+                bg_upload = st.file_uploader(
+                    "Upload Background Image",
+                    type=["png", "jpg", "jpeg", "webp"],
+                    key="host_background_upload",
+                )
+                styles = [
+                    "Fill / Cover", "Fit / Contain", "Repeat Pattern",
+                    "Repeat Horizontally", "Repeat Vertically",
+                ]
+                positions = ["Center", "Top", "Bottom", "Left", "Right"]
+                background_style = st.selectbox(
+                    "Background Style",
+                    styles,
+                    index=styles.index(state.get("background_style", "Fill / Cover"))
+                    if state.get("background_style", "Fill / Cover") in styles else 0,
+                    help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless designs.",
+                )
+                pattern_size = st.slider(
+                    "Pattern / Image Scale", 40, 700,
+                    int(state.get("background_pattern_size", 220)), 10,
+                )
+                bg_position = st.selectbox(
+                    "Background Position",
+                    positions,
+                    index=positions.index(state.get("background_position", "Center"))
+                    if state.get("background_position", "Center") in positions else 0,
+                )
+                bg_brightness = st.slider(
+                    "Background Brightness", 30, 130,
+                    int(state.get("background_brightness", 100)), 5,
+                )
+                bg_blur = st.slider(
+                    "Background Blur", 0, 12,
+                    int(state.get("background_blur", 0)), 1,
+                )
+                apply_background = st.form_submit_button(
+                    "Apply Background Changes", type="primary", use_container_width=True
+                )
+
+            if apply_background:
+                state["background_style"] = background_style
+                state["background_pattern_size"] = pattern_size
+                state["background_position"] = bg_position
+                state["background_brightness"] = bg_brightness
+                state["background_blur"] = bg_blur
+
+                if bg_upload is not None:
+                    raw_upload = bg_upload.getvalue()
+                    current_upload_hash = hashlib.sha256(raw_upload).hexdigest()
+                    if current_upload_hash != state.get("background_image_hash", ""):
+                        try:
+                            encoded, mime, upload_hash, original_bytes, compressed_bytes = encode_uploaded_image(bg_upload)
+                            state["background_image"] = encoded
+                            state["background_mime"] = mime
+                            state["background_image_hash"] = upload_hash
+                            st.success(
+                                f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
+                                f"to {compressed_bytes / 1024:.0f} KB."
+                            )
+                        except Exception as exc:
+                            st.error(f"Could not process that background image: {exc}")
+                            return
                 save_state(state)
                 st.rerun()
 
-        # 3) Optional branding overrides after the preset has been chosen.
-        with st.expander("3. Branding + Layout", expanded=True):
-            theme_colors = get_theme_colors(state)
-            new_title = st.text_input("Game Title", value=state.get("title", "Survey Style Interactive Party Game"))
-            new_subtitle = st.text_input("Subtitle", value=state.get("subtitle", "Tournament Edition"))
-            title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
-            subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
-            font_names = list(FONT_OPTIONS.keys())
-            title_font = st.selectbox(
-                "Title Font",
-                font_names,
-                index=font_names.index(state.get("title_font", "Playfair Display"))
-                if state.get("title_font", "Playfair Display") in FONT_OPTIONS else 0,
-            )
-            body_font = st.selectbox(
-                "Body Font",
-                font_names,
-                index=font_names.index(state.get("body_font", "Cormorant Garamond"))
-                if state.get("body_font", "Cormorant Garamond") in FONT_OPTIONS else 1,
-            )
-            title_color = st.color_picker("Title Color", state.get("title_color", theme_colors["primary"]))
-            subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", theme_colors["secondary"]))
-            panel_color = st.color_picker("Center Panel Color", state.get("panel_color", theme_colors["cream"]))
-            panel_opacity = st.slider("Center Panel Opacity", 5, 95, int(float(state.get("panel_opacity", 0.20)) * 100)) / 100
+            if state.get("background_image"):
+                if st.button("Remove Background", key="remove_background"):
+                    state["background_image"] = ""
+                    state["background_mime"] = "image/png"
+                    state["background_image_hash"] = ""
+                    save_state(state)
+                    st.session_state.pop("host_background_upload", None)
+                    st.rerun()
 
-            st.markdown("**Theme Colors**")
+        # 3) Editors use an explicit Apply button so color-picker values persist reliably.
+        with st.expander("3. Design Editors", expanded=True):
+            theme_colors = get_theme_colors(state)
+            base_theme = (
+                default_custom_theme()
+                if state.get("theme") == "Custom"
+                else THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"]).copy()
+            )
             if state.get("theme") == "Custom":
-                base_theme = default_custom_theme()
-                base_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
-            else:
-                base_theme = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"]).copy()
-            overrides = state.get("theme_overrides", {}) if isinstance(state.get("theme_overrides"), dict) else {}
-            new_overrides = {}
-            for label, key in THEME_COLOR_FIELDS:
-                new_overrides[key] = st.color_picker(
-                    label,
-                    overrides.get(key, base_theme.get(key, "#FFFFFF")),
-                    key=f"theme_override_{key}",
+                base_theme.update(
+                    state.get("custom_theme", {})
+                    if isinstance(state.get("custom_theme"), dict) else {}
+                )
+            overrides = (
+                state.get("theme_overrides", {})
+                if isinstance(state.get("theme_overrides"), dict) else {}
+            )
+
+            with st.form("design_editor_form", clear_on_submit=False):
+                new_title = st.text_input(
+                    "Game Title", value=state.get("title", "Survey Style Interactive Party Game")
+                )
+                new_subtitle = st.text_input(
+                    "Subtitle", value=state.get("subtitle", "Tournament Edition")
+                )
+                title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
+                subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
+                font_names = list(FONT_OPTIONS.keys())
+                title_font = st.selectbox(
+                    "Title Font", font_names,
+                    index=font_names.index(state.get("title_font", "Playfair Display"))
+                    if state.get("title_font") in font_names else 0,
+                )
+                body_font = st.selectbox(
+                    "Body Font", font_names,
+                    index=font_names.index(state.get("body_font", "Cormorant Garamond"))
+                    if state.get("body_font") in font_names else 1,
                 )
 
-            st.markdown("**Background Designer**")
-            bg_upload = st.file_uploader("Upload Background Image", type=["png", "jpg", "jpeg", "webp"])
-            background_style = st.selectbox(
-                "Background Style",
-                ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"],
-                index=["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"].index(state.get("background_style", "Fill / Cover"))
-                if state.get("background_style", "Fill / Cover") in ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"] else 0,
-                help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless backgrounds or icon patterns.",
-            )
-            pattern_size = st.slider("Pattern / Image Scale", 40, 700, int(state.get("background_pattern_size", 220)), 10)
-            bg_position = st.selectbox(
-                "Background Position",
-                ["Center", "Top", "Bottom", "Left", "Right"],
-                index=["Center", "Top", "Bottom", "Left", "Right"].index(state.get("background_position", "Center"))
-                if state.get("background_position", "Center") in ["Center", "Top", "Bottom", "Left", "Right"] else 0,
-            )
-            bg_brightness = st.slider("Background Brightness", 30, 130, int(state.get("background_brightness", 100)), 5)
-            bg_blur = st.slider("Background Blur", 0, 12, int(state.get("background_blur", 0)), 1)
+                st.markdown("**Text + Panel Colors**")
+                title_color = st.color_picker(
+                    "Title Color",
+                    value=state.get("title_color", theme_colors["primary"]),
+                    key="editor_title_color",
+                )
+                subtitle_color = st.color_picker(
+                    "Subtitle Color",
+                    value=state.get("subtitle_color", theme_colors["secondary"]),
+                    key="editor_subtitle_color",
+                )
+                panel_color = st.color_picker(
+                    "Center Panel Color",
+                    value=state.get("panel_color", theme_colors["cream"]),
+                    key="editor_panel_color",
+                )
+                panel_opacity = st.slider(
+                    "Center Panel Opacity", 5, 95,
+                    int(float(state.get("panel_opacity", 0.20)) * 100),
+                ) / 100
 
-            changed = False
-            for key, value in {
-                "title": new_title,
-                "subtitle": new_subtitle,
-                "title_font": title_font,
-                "body_font": body_font,
-                "title_size": title_size,
-                "subtitle_size": subtitle_size,
-                "title_color": title_color,
-                "subtitle_color": subtitle_color,
-                "panel_color": panel_color,
-                "panel_opacity": panel_opacity,
-                "theme_overrides": new_overrides,
-                "background_style": background_style,
-                "background_pattern_size": pattern_size,
-                "background_position": bg_position,
-                "background_brightness": bg_brightness,
-                "background_blur": bg_blur,
-            }.items():
-                if state.get(key) != value:
-                    state[key] = value
-                    changed = True
+                st.markdown("**Theme Colors**")
+                new_overrides = {}
+                for label, color_key in THEME_COLOR_FIELDS:
+                    new_overrides[color_key] = st.color_picker(
+                        label,
+                        value=overrides.get(color_key, base_theme.get(color_key, "#FFFFFF")),
+                        key=f"editor_theme_{color_key}",
+                    )
 
-            if bg_upload is not None:
-                raw_upload = bg_upload.getvalue()
-                current_upload_hash = hashlib.sha256(raw_upload).hexdigest()
+                apply_design = st.form_submit_button(
+                    "Apply Design Changes", type="primary", use_container_width=True
+                )
 
-                # Streamlit keeps file_uploader populated across reruns. Only process
-                # the file when it differs from the background already saved.
-                if current_upload_hash != state.get("background_image_hash", ""):
-                    try:
-                        encoded, mime, upload_hash, original_bytes, compressed_bytes = encode_uploaded_image(bg_upload)
-                        state["background_image"] = encoded
-                        state["background_mime"] = mime
-                        state["background_image_hash"] = upload_hash
-                        changed = True
-                        st.success(
-                            f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
-                            f"to {compressed_bytes / 1024:.0f} KB."
-                        )
-                    except Exception as exc:
-                        st.error(f"Could not process that background image: {exc}")
+            if apply_design:
+                state.update({
+                    "title": new_title,
+                    "subtitle": new_subtitle,
+                    "title_font": title_font,
+                    "body_font": body_font,
+                    "title_size": title_size,
+                    "subtitle_size": subtitle_size,
+                    "title_color": title_color,
+                    "subtitle_color": subtitle_color,
+                    "panel_color": panel_color,
+                    "panel_opacity": panel_opacity,
+                    "theme_overrides": new_overrides,
+                })
+                save_state(state)
+                st.rerun()
 
-            col_a, col_b = st.columns(2)
-            with col_a:
-                if st.button("Use Theme Font Colors"):
-                    state["title_color"] = theme_colors["primary"]
-                    state["subtitle_color"] = theme_colors["secondary"]
-                    changed = True
-            with col_b:
-                if st.button("Reset Colors to Selected Theme"):
+            reset_col, font_col = st.columns(2)
+            with reset_col:
+                if st.button("Reset Theme Colors", key="reset_theme_colors", use_container_width=True):
+                    reset_colors = THEMES.get(
+                        state.get("theme", "Classic Party"), THEMES["Classic Party"]
+                    )
                     state["theme_overrides"] = {}
-                    reset_colors = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"])
                     state["title_color"] = reset_colors["primary"]
                     state["subtitle_color"] = reset_colors["secondary"]
                     state["panel_color"] = reset_colors["cream"]
-                    changed = True
+                    save_state(state)
+                    for _, color_key in THEME_COLOR_FIELDS:
+                        st.session_state.pop(f"editor_theme_{color_key}", None)
+                    for widget_key in (
+                        "editor_title_color", "editor_subtitle_color", "editor_panel_color"
+                    ):
+                        st.session_state.pop(widget_key, None)
+                    st.rerun()
+            with font_col:
+                if st.button("Use Theme Font Colors", key="use_theme_font_colors", use_container_width=True):
+                    current_colors = get_theme_colors(state)
+                    state["title_color"] = current_colors["primary"]
+                    state["subtitle_color"] = current_colors["secondary"]
+                    save_state(state)
+                    st.session_state.pop("editor_title_color", None)
+                    st.session_state.pop("editor_subtitle_color", None)
+                    st.rerun()
 
-            if state.get("background_image") and st.button("Remove Background"):
-                state["background_image"] = ""
-                state["background_mime"] = "image/png"
-                state["background_image_hash"] = ""
-                changed = True
-
-            if changed:
-                save_state(state)
-                st.rerun()
-
-        # 4) Bring your own questions, if desired.
+        # 4) Bring your own questions after the visual design options.
         with st.expander("4. Custom Questions", expanded=False):
-            st.caption("Required columns: game_type, question, answer, points. Use game_type values main or fast_money.")
-            st.download_button("Download Question Template", data=question_template_csv(), file_name="survey_game_question_template.csv", mime="text/csv")
-            uploaded_questions = st.file_uploader("Upload completed CSV template", type=["csv"])
-            if uploaded_questions is not None and st.button("Load Uploaded Questions"):
+            st.caption("Required columns: game_type, question, answer, points. Use main or fast_money for game_type.")
+            st.download_button(
+                "Download Question Template",
+                data=question_template_csv(),
+                file_name="survey_game_question_template.csv",
+                mime="text/csv",
+            )
+            uploaded_questions = st.file_uploader(
+                "Upload completed CSV template", type=["csv"], key="custom_question_upload"
+            )
+            if uploaded_questions is not None and st.button(
+                "Load Uploaded Questions", key="load_uploaded_questions"
+            ):
                 try:
                     main_qs, fast_qs = load_questions_from_upload(uploaded_questions)
                     state["questions"] = main_qs
@@ -1923,9 +2004,14 @@ if view == "host":
                     st.rerun()
                 except Exception as error:
                     st.error(f"Could not load uploaded questions: {error}")
+
             st.divider()
-            csv_url = st.text_input("Or paste a published Google Sheet CSV URL", value=state.get("google_sheet_url", ""))
-            if st.button("Load Questions from URL"):
+            csv_url = st.text_input(
+                "Or paste a published Google Sheet CSV URL",
+                value=state.get("google_sheet_url", ""),
+                key="custom_question_sheet_url",
+            )
+            if st.button("Load Questions from URL", key="load_questions_url"):
                 try:
                     main_qs, fast_qs = load_questions_from_csv(csv_url)
                     state["questions"] = main_qs
@@ -1941,8 +2027,31 @@ if view == "host":
                 except Exception as error:
                     st.error(f"Could not load questions from URL: {error}")
 
-        # 5) Review questions after choosing a theme or uploading custom questions.
-        with st.expander("5. Questions Preview", expanded=False):
+        # 5) Set game size before teams join/lock.
+        with st.expander("5. Game Setup", expanded=False):
+            max_teams = st.number_input(
+                "Number of Teams Playing", min_value=2, max_value=20,
+                value=int(state.get("max_teams", 4)), step=1,
+                disabled=state.get("locked", False),
+            )
+            q_per_match = st.number_input(
+                "Questions per Match", min_value=1, max_value=10,
+                value=int(state.get("questions_per_match", 3)), step=1,
+                disabled=state.get("locked", False),
+            )
+            if state.get("locked", False):
+                st.caption("Unlock teams to change these settings.")
+            if not state.get("locked") and (
+                max_teams != state.get("max_teams")
+                or q_per_match != state.get("questions_per_match")
+            ):
+                state["max_teams"] = int(max_teams)
+                state["questions_per_match"] = int(q_per_match)
+                save_state(state)
+                st.rerun()
+
+        # 6) Review questions after choosing a theme or uploading custom questions.
+        with st.expander("6. Questions Preview", expanded=False):
             st.write(f"Main Questions: {len(state.get('questions', []))}")
             for i, item in enumerate(state.get("questions", []), start=1):
                 with st.expander(f"{i}. {item.get('question', '')[:45]}"):
@@ -1952,8 +2061,8 @@ if view == "host":
             for i, item in enumerate(state.get("fast_money_questions", []), start=1):
                 st.caption(f"{i}. {item.get('question', '')}")
 
-        # 6) Lock teams and run the bracket.
-        with st.expander("6. Teams + Bracket", expanded=True):
+        # 7) Lock teams and run the bracket.
+        with st.expander("7. Teams + Bracket", expanded=True):
             st.write(f"Teams signed up: {len(state.get('teams', {}))}/{state.get('max_teams', 4)}")
             if not state.get("locked"):
                 if st.button("Lock Teams + Build Bracket"):
