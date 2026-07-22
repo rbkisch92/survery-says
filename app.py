@@ -42,14 +42,8 @@ FUZZY_THRESHOLD = 78
 
 THEMES = {
     "Classic Party": {
-        "paper": "#F7F3F0",
-        "cream": "#FFFFFF",
-        "primary": "#2E2926",
-        "secondary": "#8F7A6F",
-        "accent": "#EDE6E1",
-        "border": "#DDD4CF",
-        "highlight": "#A88F80",
-        "sidebar": "#FAF8F6",
+        "paper": "#F8F5F0", "cream": "#FFFAF8", "primary": "#6E5873", "secondary": "#A58BB7",
+        "accent": "#EADFED", "border": "#D8C4DD", "highlight": "#E8C7D0", "sidebar": "#F2EAF4",
     },
     "Baby Shower - Boy": {
         "paper": "#F5F9FD", "cream": "#FFFFFF", "primary": "#355C7D", "secondary": "#5D8AA8",
@@ -105,8 +99,8 @@ FONT_OPTIONS = {
     "Cormorant Garamond": "'Cormorant Garamond', serif",
     "Georgia": "Georgia, serif",
     "Times New Roman": "'Times New Roman', serif",
-    "Arial": "'Inter', Arial, sans-serif",
-    "Verdana": "'Inter', Verdana, sans-serif",
+    "Arial": "Arial, sans-serif",
+    "Verdana": "Verdana, sans-serif",
 }
 
 
@@ -389,12 +383,12 @@ def default_state():
         "theme_overrides": {},
         "title": "Survey Style Interactive Party Game",
         "subtitle": "Tournament Edition",
-        "title_font": "Arial",
-        "body_font": "Verdana",
-        "title_size": 56,
+        "title_font": "Playfair Display",
+        "body_font": "Cormorant Garamond",
+        "title_size": 64,
         "subtitle_size": 24,
-        "title_color": "#2E2926",
-        "subtitle_color": "#8F7A6F",
+        "title_color": "#6E5873",
+        "subtitle_color": "#A58BB7",
         "panel_color": "#FFFAF8",
         "panel_opacity": 0.20,
         "background_image": "",
@@ -593,16 +587,7 @@ def migrate_state(state):
     if state.get("title_font") not in FONT_OPTIONS:
         state["title_font"] = "Playfair Display"
     if state.get("body_font") not in FONT_OPTIONS:
-        state["body_font"] = "Arial"
-
-    # Migrate older default branding colors to the current modern palette.
-    if state.get("title_color") in {"#6E5873", "#111827"}:
-        state["title_color"] = "#2F2926"
-    if state.get("subtitle_color") in {"#A58BB7", "#64748B", "#8A756C"}:
-        state["subtitle_color"] = "#8F7A6F"
-
-    if state.get("title_color") in {"#6E5873", "#111827", "#2F2926"}:
-        state["title_color"] = "#2E2926"
+        state["body_font"] = "Cormorant Garamond"
     if not state.get("questions"):
         state["questions"] = preset_questions_for_theme(state.get("theme", "Classic Party"))[0]
     if not state.get("fast_money_questions"):
@@ -1009,7 +994,7 @@ def inject_css(state):
 
     st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
 :root {{
     --paper: {theme['paper']};
@@ -1025,11 +1010,7 @@ def inject_css(state):
 html, body, .stApp {{
     min-height: 100vh;
     color: var(--plum) !important;
-    font-size: 16px;
     font-family: {body_font} !important;
-    line-height: 1.55;
-    letter-spacing: 0.01em;
-    -webkit-font-smoothing: antialiased;
 }}
 
 .stApp {{
@@ -1201,8 +1182,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .question-card {{
     background: var(--cream);
-    border: 1px solid var(--border-lavender);
-    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    border: 2px solid var(--border-lavender);
     border-radius: 28px;
     padding: 28px;
     margin: 20px 0 24px 0;
@@ -1215,8 +1195,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .answer-tile {{
     background: var(--cream);
-    border: 1px solid var(--border-lavender);
-    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    border: 2px solid var(--border-lavender);
     border-radius: 22px;
     padding: 18px 22px;
     margin-bottom: 14px;
@@ -1238,8 +1217,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .score-card, .bracket-card, .info-card {{
     background: var(--cream);
-    border: 1px solid var(--border-lavender);
-    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    border: 2px solid var(--border-lavender);
     border-radius: 22px;
     padding: 18px;
     margin-bottom: 12px;
@@ -1319,706 +1297,6 @@ div[data-testid="stDialog"] section {{
     }}
 }}
 
-
-/* Soft modern dashboard visual system */
-:root {{
-    --modern-bg: #F4F1EF;
-    --modern-surface: rgba(255, 255, 255, 0.96);
-    --modern-text: #2F2926;
-    --modern-muted: #8A756C;
-    --modern-accent: #D9B29E;
-    --modern-accent-soft: #F2E4DE;
-    --modern-border: rgba(104, 87, 78, 0.14);
-    --modern-shadow: 0 14px 38px rgba(73, 55, 47, 0.10);
-}}
-
-.main-title {{
-    color: #2F2926 !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.045em !important;
-    line-height: 0.98 !important;
-    margin-top: 1.5rem !important;
-    margin-bottom: 0.45rem !important;
-}}
-
-.subtitle {{
-    color: #8A756C !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.015em !important;
-    margin-bottom: 2rem !important;
-}}
-
-.question-card {{
-    background: var(--modern-surface) !important;
-    color: var(--modern-text) !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 24px !important;
-    box-shadow: var(--modern-shadow) !important;
-    padding: clamp(1.5rem, 3vw, 2.4rem) !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 750 !important;
-    letter-spacing: -0.025em !important;
-}}
-
-.answer-tile {{
-    background: var(--modern-surface) !important;
-    color: var(--modern-text) !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 8px 24px rgba(73, 55, 47, 0.075) !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 650 !important;
-    transition: transform 160ms ease, box-shadow 160ms ease;
-}}
-
-.answer-tile:hover {{
-    transform: translateY(-1px);
-    box-shadow: 0 12px 30px rgba(73, 55, 47, 0.11) !important;
-}}
-
-.answer-hidden {{
-    background: #E8D3C9 !important;
-    color: rgba(47, 41, 38, 0.42) !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-}}
-
-.score-card,
-.bracket-card,
-.info-card {{
-    background: var(--modern-surface) !important;
-    color: var(--modern-text) !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 22px !important;
-    box-shadow: 0 10px 28px rgba(73, 55, 47, 0.085) !important;
-    padding: 1.35rem !important;
-}}
-
-.score-number {{
-    color: #B7836C !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.05em !important;
-}}
-
-.small-note {{
-    color: var(--modern-muted) !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 500 !important;
-}}
-
-.message {{
-    color: #8A5F4E !important;
-    background: rgba(255,255,255,0.88) !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 16px !important;
-    padding: 0.9rem 1.1rem !important;
-    box-shadow: 0 8px 24px rgba(73,55,47,0.07) !important;
-}}
-
-.stButton button {{
-    background: #D9B29E !important;
-    color: #2F2926 !important;
-    border: 1px solid rgba(96, 68, 56, 0.10) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 7px 18px rgba(111, 78, 63, 0.12) !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-weight: 650 !important;
-    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
-}}
-
-.stButton button:hover {{
-    filter: brightness(0.985);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(111, 78, 63, 0.17) !important;
-}}
-
-div[data-testid="stDialog"] > div {{
-    background: #F8F5F3 !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 26px 80px rgba(47, 41, 38, 0.22) !important;
-}}
-
-[data-testid="stExpander"] {{
-    background: #FFFFFF !important;
-    border: 1px solid var(--modern-border) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 5px 18px rgba(73, 55, 47, 0.055) !important;
-    overflow: hidden !important;
-}}
-
-.stTextInput input,
-.stTextArea textarea,
-.stSelectbox div[data-baseweb="select"] > div,
-div[data-baseweb="input"] input,
-div[data-baseweb="textarea"] textarea {{
-    border-radius: 12px !important;
-    border-color: rgba(104, 87, 78, 0.18) !important;
-    font-family: 'Inter', Arial, sans-serif !important;
-}}
-
-[data-testid="stMainBlockContainer"] {{
-    padding-top: 2.25rem !important;
-    padding-bottom: 6rem !important;
-}}
-
-@media (max-width: 700px) {{
-    .main-title {{
-        margin-top: 2rem !important;
-        letter-spacing: -0.035em !important;
-    }}
-
-    .subtitle {{
-        margin-bottom: 1.4rem !important;
-    }}
-
-    .question-card {{
-        border-radius: 20px !important;
-    }}
-
-    .answer-tile,
-    .score-card {{
-        border-radius: 16px !important;
-    }}
-}}
-
-
-/* Mobile-first game layout inspired by the approved mockup */
-.mobile-game-board {{
-    margin-top: 1.25rem;
-}}
-
-.question-kicker {{
-    margin-bottom: 0.65rem;
-    color: var(--modern-muted);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-align: center;
-    text-transform: uppercase;
-}}
-
-.answer-list {{
-    overflow: hidden;
-    margin-top: 1rem;
-    border: 1px solid var(--modern-border);
-    border-radius: 22px;
-    background: rgba(255,255,255,0.97);
-    box-shadow: 0 12px 34px rgba(73,55,47,0.09);
-}}
-
-.answer-row {{
-    display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) 48px;
-    align-items: center;
-    min-height: 68px;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(104,87,78,0.11);
-    font-family: 'Inter', Arial, sans-serif;
-}}
-
-.answer-row:last-child {{
-    border-bottom: 0;
-}}
-
-.answer-rank {{
-    display: grid;
-    width: 36px;
-    height: 36px;
-    place-items: center;
-    border-radius: 999px;
-    background: #F0ECE9;
-    color: #4A403B;
-    font-weight: 750;
-}}
-
-.answer-name {{
-    overflow: hidden;
-    padding: 0 0.75rem;
-    color: var(--modern-text);
-    font-weight: 650;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}}
-
-.answer-points {{
-    color: #9A6D59;
-    font-size: 1.05rem;
-    font-weight: 800;
-    text-align: right;
-}}
-
-.answer-row-hidden .answer-name,
-.answer-row-hidden .answer-points {{
-    color: #AAA09B;
-    font-weight: 500;
-}}
-
-.round-pill {{
-    width: fit-content;
-    margin: 1.1rem auto 1.5rem;
-    padding: 0.55rem 1rem;
-    border-radius: 999px;
-    background: #A98E80;
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 750;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}}
-
-.mobile-scoreboard {{
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.8rem;
-    margin: 1rem 0 1.4rem;
-}}
-
-.mobile-stat-card {{
-    min-width: 0;
-    padding: 1.1rem;
-    border: 1px solid var(--modern-border);
-    border-radius: 18px;
-    background: rgba(255,255,255,0.96);
-    box-shadow: 0 8px 24px rgba(73,55,47,0.07);
-    text-align: center;
-}}
-
-.mobile-stat-label {{
-    overflow: hidden;
-    color: var(--modern-muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-}}
-
-.mobile-stat-value {{
-    margin: 0.35rem 0;
-    color: var(--modern-text);
-    font-size: clamp(1.9rem, 5vw, 3rem);
-    font-weight: 800;
-    letter-spacing: -0.06em;
-}}
-
-.mobile-bank-card .mobile-stat-value {{
-    color: #A8735D;
-}}
-
-.mobile-stat-note {{
-    color: var(--modern-muted);
-    font-size: 0.76rem;
-}}
-
-.host-status-strip {{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.65rem;
-    margin-top: 1rem;
-}}
-
-.host-status-strip > div {{
-    padding: 0.9rem 0.55rem;
-    border: 1px solid var(--modern-border);
-    border-radius: 14px;
-    background: white;
-    text-align: center;
-}}
-
-.host-status-strip span {{
-    display: block;
-    color: var(--modern-muted);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-}}
-
-.host-status-strip strong {{
-    display: block;
-    margin-top: 0.3rem;
-    color: var(--modern-text);
-    font-size: 1.2rem;
-}}
-
-.compact-team-row {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.55rem;
-    padding: 0.85rem 1rem;
-    border: 1px solid var(--modern-border);
-    border-radius: 14px;
-    background: white;
-}}
-
-.compact-team-row span {{
-    color: var(--modern-muted);
-    font-size: 0.85rem;
-}}
-
-.advanced-label {{
-    margin: 1.5rem 0 0.65rem;
-    color: var(--modern-muted);
-    font-size: 0.76rem;
-    font-weight: 750;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}}
-
-div[data-testid="stDialog"] [data-baseweb="tab-list"] {{
-    gap: 0.4rem;
-    padding: 0.35rem;
-    border-radius: 14px;
-    background: #EEE9E6;
-}}
-
-div[data-testid="stDialog"] button[data-baseweb="tab"] {{
-    min-height: 44px;
-    border-radius: 11px;
-    font-weight: 700;
-}}
-
-@media (max-width: 700px) {{
-    .mobile-scoreboard {{
-        gap: 0.55rem;
-    }}
-
-    .mobile-stat-card {{
-        padding: 0.85rem 0.45rem;
-        border-radius: 15px;
-    }}
-
-    .mobile-stat-label {{
-        font-size: 0.65rem;
-    }}
-
-    .mobile-stat-value {{
-        font-size: 2rem;
-    }}
-
-    .mobile-stat-note {{
-        font-size: 0.65rem;
-    }}
-
-    .question-card {{
-        padding: 1.35rem 1rem !important;
-        font-size: clamp(1.25rem, 6vw, 1.8rem) !important;
-    }}
-
-    .answer-row {{
-        grid-template-columns: 40px minmax(0, 1fr) 42px;
-        min-height: 62px;
-        padding: 0.65rem 0.8rem;
-    }}
-
-    .answer-rank {{
-        width: 32px;
-        height: 32px;
-    }}
-
-    .answer-name {{
-        padding: 0 0.55rem;
-    }}
-
-    .host-status-strip {{
-        gap: 0.4rem;
-    }}
-}}
-
-
-/* Exact warm-neutral UI system from the approved mobile mockup */
-:root {{
-    --mockup-bg: #F7F3F0;
-    --mockup-surface: #FFFFFF;
-    --mockup-text: #2E2926;
-    --mockup-muted: #8F7A6F;
-    --mockup-accent: #A88F80;
-    --mockup-accent-dark: #92796B;
-    --mockup-soft: #EDE6E1;
-    --mockup-border: #DDD4CF;
-    --mockup-shadow: 0 10px 30px rgba(65, 51, 44, 0.10);
-}}
-
-/* Remove remaining blue Streamlit accents */
-a,
-a:visited,
-[data-testid="stMarkdownContainer"] a,
-[data-testid="stLinkButton"] a {{
-    color: #8F6F60 !important;
-    text-decoration-color: rgba(143,111,96,0.35) !important;
-}}
-
-a:hover,
-[data-testid="stMarkdownContainer"] a:hover {{
-    color: #76584B !important;
-}}
-
-.stButton button,
-button[kind="primary"],
-button[data-testid="baseButton-primary"],
-[data-testid="stFormSubmitButton"] button {{
-    background: #A88F80 !important;
-    color: #FFFFFF !important;
-    border: 1px solid #A88F80 !important;
-    box-shadow: 0 7px 18px rgba(112, 83, 68, 0.16) !important;
-}}
-
-.stButton button:hover,
-button[kind="primary"]:hover,
-button[data-testid="baseButton-primary"]:hover,
-[data-testid="stFormSubmitButton"] button:hover {{
-    background: #92796B !important;
-    border-color: #92796B !important;
-    color: #FFFFFF !important;
-}}
-
-.stButton button:focus,
-button:focus-visible,
-a:focus-visible,
-input:focus,
-textarea:focus,
-select:focus,
-[role="tab"]:focus-visible {{
-    outline: 3px solid rgba(168,143,128,0.30) !important;
-    outline-offset: 2px !important;
-    box-shadow: 0 0 0 3px rgba(168,143,128,0.20) !important;
-}}
-
-button[kind="secondary"],
-button[data-testid="baseButton-secondary"] {{
-    background: #FFFFFF !important;
-    color: #4A403B !important;
-    border: 1px solid #DDD4CF !important;
-    box-shadow: 0 5px 15px rgba(65,51,44,0.07) !important;
-}}
-
-button[kind="secondary"]:hover,
-button[data-testid="baseButton-secondary"]:hover {{
-    background: #F3EEEA !important;
-    color: #2E2926 !important;
-    border-color: #CBBDB5 !important;
-}}
-
-/* Tabs */
-div[data-baseweb="tab-list"] {{
-    background: #EEE8E4 !important;
-}}
-
-button[data-baseweb="tab"] {{
-    color: #7A6A62 !important;
-}}
-
-button[data-baseweb="tab"][aria-selected="true"] {{
-    background: #FFFFFF !important;
-    color: #2E2926 !important;
-    box-shadow: 0 3px 10px rgba(65,51,44,0.08) !important;
-}}
-
-div[data-baseweb="tab-highlight"] {{
-    background-color: #A88F80 !important;
-}}
-
-/* Inputs, selects, text areas */
-.stTextInput input,
-.stTextArea textarea,
-.stNumberInput input,
-div[data-baseweb="input"] input,
-div[data-baseweb="textarea"] textarea,
-div[data-baseweb="select"] > div {{
-    background: #FFFFFF !important;
-    color: #2E2926 !important;
-    border-color: #DDD4CF !important;
-}}
-
-.stTextInput input:focus,
-.stTextArea textarea:focus,
-.stNumberInput input:focus,
-div[data-baseweb="input"] input:focus,
-div[data-baseweb="textarea"] textarea:focus,
-div[data-baseweb="select"] > div:focus-within {{
-    border-color: #A88F80 !important;
-    box-shadow: 0 0 0 3px rgba(168,143,128,0.16) !important;
-}}
-
-/* Sliders */
-div[data-testid="stSlider"] [role="slider"] {{
-    background: #A88F80 !important;
-    border-color: #A88F80 !important;
-}}
-
-div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div {{
-    background-color: #D9CBC3 !important;
-}}
-
-div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div > div {{
-    background-color: #A88F80 !important;
-}}
-
-/* Checkboxes, radios and toggles */
-input[type="checkbox"],
-input[type="radio"] {{
-    accent-color: #A88F80 !important;
-}}
-
-div[data-baseweb="checkbox"] div[aria-checked="true"],
-div[data-baseweb="radio"] div[aria-checked="true"] {{
-    background-color: #A88F80 !important;
-    border-color: #A88F80 !important;
-}}
-
-button[role="switch"][aria-checked="true"] {{
-    background-color: #A88F80 !important;
-}}
-
-/* Progress bars */
-div[data-testid="stProgress"] > div > div > div {{
-    background-color: #A88F80 !important;
-}}
-
-/* Metrics and status elements */
-[data-testid="stMetricValue"] {{
-    color: #2E2926 !important;
-}}
-
-[data-testid="stMetricLabel"],
-[data-testid="stMetricDelta"] {{
-    color: #8F7A6F !important;
-}}
-
-div[data-testid="stAlert"] {{
-    background: #F4EEEA !important;
-    color: #4A403B !important;
-    border: 1px solid #DDD4CF !important;
-}}
-
-/* Expander styling */
-[data-testid="stExpander"] summary:hover {{
-    color: #2E2926 !important;
-    background: #F4EFEC !important;
-}}
-
-[data-testid="stExpander"] svg {{
-    color: #8F7A6F !important;
-}}
-
-/* File uploader */
-[data-testid="stFileUploaderDropzone"] {{
-    background: #FAF8F6 !important;
-    border-color: #CFC2BA !important;
-}}
-
-[data-testid="stFileUploaderDropzone"] button {{
-    background: #A88F80 !important;
-    color: #FFFFFF !important;
-    border-color: #A88F80 !important;
-}}
-
-/* Dialog / host control overlay */
-div[data-testid="stDialog"] > div {{
-    background: #FBF9F7 !important;
-}}
-
-div[data-testid="stDialog"] header,
-div[data-testid="stDialog"] [data-testid="stHeadingWithActionElements"] {{
-    color: #2E2926 !important;
-}}
-
-div[data-testid="stDialog"] [aria-label="Close"] {{
-    color: #6F5E55 !important;
-}}
-
-/* Game screen exact palette */
-.main-title {{
-    color: #2E2926 !important;
-}}
-
-.subtitle {{
-    color: #8F7A6F !important;
-}}
-
-.question-card,
-.answer-list,
-.mobile-stat-card,
-.host-status-strip > div,
-.compact-team-row {{
-    background: #FFFFFF !important;
-    border-color: #DDD4CF !important;
-    box-shadow: var(--mockup-shadow) !important;
-}}
-
-.question-kicker,
-.mobile-stat-label,
-.mobile-stat-note,
-.small-note,
-.advanced-label {{
-    color: #8F7A6F !important;
-}}
-
-.answer-rank {{
-    background: #F0ECE9 !important;
-    color: #4A403B !important;
-}}
-
-.answer-points,
-.mobile-bank-card .mobile-stat-value {{
-    color: #92705F !important;
-}}
-
-.round-pill {{
-    background: #A88F80 !important;
-    color: #FFFFFF !important;
-}}
-
-.answer-row-hidden .answer-name,
-.answer-row-hidden .answer-points {{
-    color: #AAA09B !important;
-}}
-
-/* Remove blue selection/focus fill where browsers expose it */
-::selection {{
-    background: rgba(168,143,128,0.28);
-    color: #2E2926;
-}}
-
-/* Mobile spacing and card proportions to match the reference */
-@media (max-width: 700px) {{
-    [data-testid="stMainBlockContainer"] {{
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }}
-
-    .main-title {{
-        font-size: clamp(2rem, 10vw, 3.1rem) !important;
-        margin-top: 2.5rem !important;
-    }}
-
-    .subtitle {{
-        font-size: 1rem !important;
-    }}
-
-    .question-card {{
-        border-radius: 20px !important;
-        box-shadow: 0 10px 28px rgba(65,51,44,0.09) !important;
-    }}
-
-    .answer-list {{
-        border-radius: 20px !important;
-    }}
-
-    .mobile-scoreboard {{
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }}
-
-    div[data-testid="stDialog"] > div {{
-        width: calc(100vw - 1rem) !important;
-        max-width: calc(100vw - 1rem) !important;
-        border-radius: 24px !important;
-    }}
-}}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -2033,78 +1311,34 @@ def render_header(state):
 
 def render_answer_board(state):
     question = current_question(state)
-    st.markdown(
-        f"""
-        <section class="mobile-game-board">
-            <div class="question-kicker">Survey question</div>
-            <div class="question-card">{question["question"]}</div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    rows = []
+    st.markdown(f'<div class="question-card">{question["question"]}</div>', unsafe_allow_html=True)
     for idx, (answer, points) in enumerate(question["answers"]):
         if idx in state.get("revealed", []):
-            rows.append(f"""
-            <div class="answer-row answer-row-revealed">
-                <span class="answer-rank">{idx + 1}</span>
-                <span class="answer-name">{answer}</span>
-                <span class="answer-points">{points}</span>
-            </div>
-            """)
+            st.markdown(f'<div class="answer-tile"><span>{idx + 1}. {answer}</span><span>{points}</span></div>', unsafe_allow_html=True)
         else:
-            rows.append(f"""
-            <div class="answer-row answer-row-hidden">
-                <span class="answer-rank">{idx + 1}</span>
-                <span class="answer-name">Tap to reveal</span>
-                <span class="answer-points">—</span>
-            </div>
-            """)
-
-    st.markdown(
-        '<div class="answer-list">' + "".join(rows) + '</div>'
-        f'<div class="round-pill">Round {state.get("match_question_number", 1)} of {state.get("questions_per_match", 3)}</div>',
-        unsafe_allow_html=True,
-    )
+            st.markdown(f'<div class="answer-tile answer-hidden">{idx + 1}</div>', unsafe_allow_html=True)
 
 
 def render_scoreboard(state):
     teams = [t for t in state.get("active_teams", []) if t != "BYE"]
     if not teams:
         return
-
-    cards = []
-    for team in teams[:2]:
-        cards.append(f"""
-        <div class="mobile-stat-card">
-            <div class="mobile-stat-label">{team}</div>
-            <div class="mobile-stat-value">{state['match_scores'].get(team, 0)}</div>
-            <div class="mobile-stat-note">Match points</div>
+    cols = st.columns(len(teams) + 1)
+    for idx, team in enumerate(teams):
+        cols[idx].markdown(f"""
+        <div class="score-card">
+            <div>{team}</div>
+            <div class="score-number">{state['match_scores'].get(team, 0)}</div>
+            <div class="small-note">match points</div>
         </div>
-        """)
-
-    while len(cards) < 2:
-        cards.append("""
-        <div class="mobile-stat-card">
-            <div class="mobile-stat-label">Waiting</div>
-            <div class="mobile-stat-value">—</div>
-            <div class="mobile-stat-note">Match points</div>
-        </div>
-        """)
-
-    bank_card = f"""
-    <div class="mobile-stat-card mobile-bank-card">
-        <div class="mobile-stat-label">Round bank</div>
-        <div class="mobile-stat-value">{state.get('round_bank', 0)}</div>
-        <div class="mobile-stat-note">Question {state.get('match_question_number', 1)} of {state.get('questions_per_match', 3)}</div>
+        """, unsafe_allow_html=True)
+    cols[-1].markdown(f"""
+    <div class="score-card">
+        <div>Round Bank</div>
+        <div class="score-number">{state.get('round_bank', 0)}</div>
+        <div class="small-note">Q {state.get('match_question_number', 1)}/{state.get('questions_per_match', 3)}</div>
     </div>
-    """
-
-    st.markdown(
-        '<div class="mobile-scoreboard">' + "".join(cards) + bank_card + '</div>',
-        unsafe_allow_html=True,
-    )
+    """, unsafe_allow_html=True)
 
 
 def render_bracket(state):
@@ -2343,115 +1577,6 @@ if view == "host":
             )
 
         st.markdown("### Host Control Center")
-
-        game_tab, teams_tab, more_tab = st.tabs(["Game", "Teams", "Settings"])
-
-        with game_tab:
-            st.caption("Quick controls for running the current round.")
-
-            if state.get("locked") and not state.get("tournament_complete"):
-                q_cur = current_question(state)
-                unrevealed = [
-                    (idx, answer, points)
-                    for idx, (answer, points) in enumerate(q_cur["answers"])
-                    if idx not in state.get("revealed", [])
-                ]
-
-                if unrevealed:
-                    next_idx, next_answer, next_points = unrevealed[0]
-                    if st.button(
-                        "👁 Reveal Next Answer",
-                        type="primary",
-                        use_container_width=True,
-                        key="quick_reveal_next",
-                    ):
-                        state["revealed"].append(next_idx)
-                        state["round_bank"] += int(next_points)
-                        state["message"] = f"{next_answer} is on the board!"
-                        save_state(state)
-                        st.rerun()
-                else:
-                    st.info("All answers have been revealed.")
-
-                strike_col, reset_col = st.columns(2)
-                with strike_col:
-                    if st.button("✕ Strike", use_container_width=True, key="quick_strike"):
-                        state["strike"] = True
-                        state["steal_mode"] = True
-                        state["message"] = "Strike! The other team gets one chance to steal."
-                        save_state(state)
-                        st.rerun()
-                with reset_col:
-                    if st.button("↺ Reset Question", use_container_width=True, key="quick_reset"):
-                        reset_question_state(state)
-                        save_state(state)
-                        st.rerun()
-
-                active = [t for t in state.get("active_teams", []) if t != "BYE"]
-                if active:
-                    award_cols = st.columns(len(active))
-                    for team, col in zip(active, award_cols):
-                        with col:
-                            if st.button(
-                                f"Award {team}",
-                                use_container_width=True,
-                                key=f"quick_award_{team}",
-                            ):
-                                award_bank(state, team)
-                                save_state(state)
-                                st.rerun()
-
-                next_col, end_col = st.columns(2)
-                with next_col:
-                    if st.button(
-                        "Next Question →",
-                        type="primary",
-                        use_container_width=True,
-                        key="quick_next_question",
-                    ):
-                        advance_question_in_match(state)
-                        save_state(state)
-                        st.rerun()
-                with end_col:
-                    if st.button(
-                        "End Match",
-                        use_container_width=True,
-                        key="quick_end_match",
-                    ):
-                        end_match_and_advance(state)
-                        save_state(state)
-                        st.rerun()
-
-                st.markdown(
-                    f"""
-                    <div class="host-status-strip">
-                        <div><span>Round bank</span><strong>{state.get('round_bank', 0)}</strong></div>
-                        <div><span>Question</span><strong>{state.get('match_question_number', 1)} / {state.get('questions_per_match', 3)}</strong></div>
-                        <div><span>Teams</span><strong>{len(active)}</strong></div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-            elif state.get("tournament_complete"):
-                st.success(f"Champion: {state.get('champion_team')}")
-            else:
-                st.info("Lock teams and build the bracket to activate game controls.")
-
-        with teams_tab:
-            st.write(f"Teams joined: **{len(state.get('teams', {}))} / {state.get('max_teams', 4)}**")
-            if state.get("teams"):
-                for team_name, team_data in state.get("teams", {}).items():
-                    st.markdown(
-                        f'<div class="compact-team-row"><strong>{team_name}</strong><span>{len(team_data.get("players", [])) if isinstance(team_data, dict) else 0} players</span></div>',
-                        unsafe_allow_html=True,
-                    )
-            else:
-                st.caption("No teams have joined yet.")
-
-        with more_tab:
-            st.caption("Detailed setup, branding, questions, and tournament controls are below.")
-
-        st.markdown('<div class="advanced-label">Advanced controls</div>', unsafe_allow_html=True)
 
         # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
         with st.expander("1. Event Theme + Preset Questions", expanded=True):
