@@ -1297,6 +1297,163 @@ div[data-testid="stDialog"] section {{
     }}
 }}
 
+
+/* ---------------------------------------------------------
+   Mobile scrolling fix
+   Let the document/game page scroll normally, and give the
+   host-control dialog its own touch-friendly scroll area.
+--------------------------------------------------------- */
+
+html,
+body {{
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}}
+
+.stApp {{
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+}}
+
+[data-testid="stAppViewContainer"] {{
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+}}
+
+[data-testid="stMain"] {{
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+}}
+
+.main .block-container,
+[data-testid="stMainBlockContainer"] {{
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+}}
+
+/* Host overlay/dialog: fixed shell, scrolling content */
+div[data-testid="stDialog"] {{
+    overflow: hidden !important;
+}}
+
+div[data-testid="stDialog"] > div {{
+    display: flex !important;
+    flex-direction: column !important;
+    width: min(1100px, 94vw) !important;
+    max-width: min(1100px, 94vw) !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    overflow: hidden !important;
+}}
+
+div[data-testid="stDialog"] > div > div,
+div[data-testid="stDialog"] [role="dialog"] {{
+    min-height: 0 !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}}
+
+div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {{
+    overflow: visible !important;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom)) !important;
+}}
+
+/* Streamlit versions that wrap dialog content in a section */
+div[data-testid="stDialog"] section {{
+    min-height: 0 !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}}
+
+@media (max-width: 900px) {{
+    html,
+    body,
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {{
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+    }}
+
+    body {{
+        overflow-y: auto !important;
+        position: static !important;
+        touch-action: pan-y;
+    }}
+
+    [data-testid="stAppViewContainer"] {{
+        overflow-y: visible !important;
+        position: relative !important;
+    }}
+
+    [data-testid="stMain"] {{
+        display: block !important;
+        overflow: visible !important;
+    }}
+
+    .main .block-container,
+    [data-testid="stMainBlockContainer"] {{
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+        padding-bottom: calc(8rem + env(safe-area-inset-bottom)) !important;
+    }}
+
+    div[data-testid="stDialog"] {{
+        align-items: flex-start !important;
+        padding-top: max(0.5rem, env(safe-area-inset-top)) !important;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+    }}
+
+    div[data-testid="stDialog"] > div {{
+        width: 96vw !important;
+        max-width: 96vw !important;
+        height: auto !important;
+        max-height: calc(100dvh - 1rem) !important;
+        margin: 0 auto !important;
+        overflow: hidden !important;
+    }}
+
+    div[data-testid="stDialog"] > div > div,
+    div[data-testid="stDialog"] [role="dialog"],
+    div[data-testid="stDialog"] section {{
+        height: auto !important;
+        max-height: calc(100dvh - 1rem) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }}
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
