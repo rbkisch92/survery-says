@@ -1352,7 +1352,7 @@ body {{
     padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
 }}
 
-/* Host overlay/dialog: fixed shell, scrolling content */
+/* Legacy dialog styling (unused by the Safari-safe inline panel): fixed shell, scrolling content */
 div[data-testid="stDialog"] {{
     overflow: hidden !important;
 }}
@@ -1684,7 +1684,7 @@ if view == "player":
                 st.markdown(f'<div class="score-card"><strong>#{rank} {player_name}</strong><br>{data.get("score", 0)} points</div>', unsafe_allow_html=True)
 
 # -----------------------------
-# Host View — Overlay Controls
+# Host View — Inline Host Controls (Safari-safe)
 # -----------------------------
 
 if view == "host":
@@ -1715,7 +1715,9 @@ if view == "host":
             st.metric("Fast Money Time Remaining", f"{remaining}s")
             st.progress(remaining / FAST_MONEY_SECONDS)
 
-    # Button stays on the game page; clicking it opens the control overlay.
+    # Button stays on the game page; clicking it opens an inline control panel.
+    # Streamlit dialogs use a native modal layer that conflicts with Safari's
+    # native color chooser, making the chooser appear but ignore clicks.
     open_col, spacer_col = st.columns([1, 4])
     with open_col:
         if st.button(
@@ -1727,8 +1729,9 @@ if view == "host":
             st.session_state["host_controls_open"] = True
             st.rerun()
 
-    @st.dialog("Host Control Center", width="large")
     def render_host_controls_overlay():
+        st.divider()
+        st.markdown('<div id="host-control-center"></div>', unsafe_allow_html=True)
         close_col, title_col = st.columns([1, 5])
         with close_col:
             if st.button("✕ Close", use_container_width=True, key="close_host_controls"):
@@ -1788,7 +1791,7 @@ if view == "host":
 
         # 2) Upload and adjust the background before editing the rest of the design.
         # Widgets are intentionally outside st.form so sliders, uploads and pickers
-        # remain fully interactive inside the dialog.
+        # remain fully interactive inside the host control panel.
         with st.expander("2. Background Upload", expanded=True):
             bg_upload = st.file_uploader(
                 "Upload Background Image",
