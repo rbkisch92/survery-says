@@ -1116,6 +1116,30 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 }}
 
 @media (max-width: 900px) {{
+    /* Restore normal document scrolling on mobile Safari. */
+    html,
+    body {{
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }}
+
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {{
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100dvh !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+    }}
+
+    [data-testid="stMain"] {{
+        display: block !important;
+    }}
+
     .stApp::before {{
         width: 100vw !important;
         height: 100vh !important;
@@ -1137,8 +1161,9 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
     [data-testid="stMainBlockContainer"] {{
         width: 100% !important;
         max-width: 100% !important;
-        min-height: 100vh !important;
-        min-height: 100dvh !important;
+        min-height: auto !important;
+        height: auto !important;
+        overflow: visible !important;
         /* Keep the heading below Streamlit's mobile toolbar. */
         padding: 5.25rem 1rem 4rem 1rem !important;
     }}
