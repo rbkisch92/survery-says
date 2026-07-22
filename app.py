@@ -1,4 +1,4 @@
-import base64
+`import base64
 import hashlib
 import json
 import os
@@ -1083,6 +1083,12 @@ body {{
     max-height: none !important;
 }}
 
+/* Let the app shell establish the full document height for the sidebar. */
+.stApp,
+[data-testid="stAppViewContainer"] {{
+    min-height: max(100vh, 100%) !important;
+}}
+
 /*
    Center panel layout:
    The transparent panel is a full-height layer behind the content.
@@ -1127,35 +1133,42 @@ body {{
     box-sizing: border-box !important;
 }}
 
-/* Keep the host panel fully accessible on desktop and mobile. */
+/* Make the host panel as tall as the entire page, not only the viewport. */
 section[data-testid="stSidebar"] {{
-    height: 100dvh !important;
-    max-height: 100dvh !important;
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
     overflow: visible !important;
+    align-self: stretch !important;
 }}
 
 section[data-testid="stSidebar"] > div:first-child {{
-    height: 100% !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
+    position: absolute !important;
+    inset: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
 }}
 
 section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-    height: 100% !important;
-    max-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 8rem !important;
     box-sizing: border-box !important;
 }}
 
 /* Fallback for Streamlit versions without stSidebarContent. */
 section[data-testid="stSidebar"] > div:first-child > div:first-child {{
-    max-height: 100dvh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 8rem !important;
     box-sizing: border-box !important;
 }}
