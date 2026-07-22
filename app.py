@@ -42,8 +42,14 @@ FUZZY_THRESHOLD = 78
 
 THEMES = {
     "Classic Party": {
-        "paper": "#F8F5F0", "cream": "#FFFAF8", "primary": "#6E5873", "secondary": "#A58BB7",
-        "accent": "#EADFED", "border": "#D8C4DD", "highlight": "#E8C7D0", "sidebar": "#F2EAF4",
+        "paper": "#F6F4EF",
+        "cream": "#FCFBF8",
+        "primary": "#3F4548",
+        "secondary": "#7A827A",
+        "accent": "#E9E4DB",
+        "border": "#D6D1C8",
+        "highlight": "#EEE8DF",
+        "sidebar": "#F3F0EA",
     },
     "Baby Shower - Boy": {
         "paper": "#F5F9FD", "cream": "#FFFFFF", "primary": "#355C7D", "secondary": "#5D8AA8",
@@ -384,8 +390,8 @@ def default_state():
         "title": "Survey Style Interactive Party Game",
         "subtitle": "Tournament Edition",
         "title_font": "Playfair Display",
-        "body_font": "Cormorant Garamond",
-        "title_size": 64,
+        "body_font": "Arial",
+        "title_size": 56,
         "subtitle_size": 24,
         "title_color": "#6E5873",
         "subtitle_color": "#A58BB7",
@@ -1010,7 +1016,11 @@ def inject_css(state):
 html, body, .stApp {{
     min-height: 100vh;
     color: var(--plum) !important;
+    font-size: 16px;
     font-family: {body_font} !important;
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
 }}
 
 .stApp {{
