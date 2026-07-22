@@ -1133,43 +1133,53 @@ body {{
     box-sizing: border-box !important;
 }}
 
-/* Make the host panel as tall as the entire page, not only the viewport. */
+/* Full-height host panel pinned to the top with independent scrolling. */
 section[data-testid="stSidebar"] {{
-    position: absolute !important;
+    position: fixed !important;
     top: 0 !important;
+    left: 0 !important;
     bottom: 0 !important;
-    height: auto !important;
-    min-height: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
-    align-self: stretch !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    align-self: flex-start !important;
+    z-index: 999 !important;
 }}
 
 section[data-testid="stSidebar"] > div:first-child {{
-    position: absolute !important;
-    inset: 0 !important;
-    height: auto !important;
+    position: relative !important;
+    height: 100% !important;
     min-height: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
 }}
 
 section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-    height: auto !important;
+    height: 100% !important;
     min-height: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding-bottom: 8rem !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-top: 1rem !important;
+    padding-bottom: 6rem !important;
     box-sizing: border-box !important;
 }}
 
 /* Fallback for Streamlit versions without stSidebarContent. */
 section[data-testid="stSidebar"] > div:first-child > div:first-child {{
-    height: auto !important;
+    height: 100% !important;
     min-height: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding-bottom: 8rem !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-top: 1rem !important;
+    padding-bottom: 6rem !important;
     box-sizing: border-box !important;
 }}
 
