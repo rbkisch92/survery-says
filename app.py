@@ -42,14 +42,14 @@ FUZZY_THRESHOLD = 78
 
 THEMES = {
     "Classic Party": {
-        "paper": "#F6F4EF",
-        "cream": "#FCFBF8",
-        "primary": "#3F4548",
-        "secondary": "#7A827A",
-        "accent": "#E9E4DB",
-        "border": "#D6D1C8",
-        "highlight": "#EEE8DF",
-        "sidebar": "#F3F0EA",
+        "paper": "#F5F5F4",
+        "cream": "#FFFFFF",
+        "primary": "#1F2937",
+        "secondary": "#64748B",
+        "accent": "#E2E8F0",
+        "border": "#CBD5E1",
+        "highlight": "#EEF2F7",
+        "sidebar": "#F8FAFC"
     },
     "Baby Shower - Boy": {
         "paper": "#F5F9FD", "cream": "#FFFFFF", "primary": "#355C7D", "secondary": "#5D8AA8",
@@ -105,8 +105,8 @@ FONT_OPTIONS = {
     "Cormorant Garamond": "'Cormorant Garamond', serif",
     "Georgia": "Georgia, serif",
     "Times New Roman": "'Times New Roman', serif",
-    "Arial": "Arial, sans-serif",
-    "Verdana": "Verdana, sans-serif",
+    "Arial": "'Inter', Arial, sans-serif",
+    "Verdana": "'Inter', Verdana, sans-serif",
 }
 
 
@@ -389,12 +389,12 @@ def default_state():
         "theme_overrides": {},
         "title": "Survey Style Interactive Party Game",
         "subtitle": "Tournament Edition",
-        "title_font": "Playfair Display",
-        "body_font": "Arial",
+        "title_font": "Arial",
+        "body_font": "Verdana",
         "title_size": 56,
         "subtitle_size": 24,
-        "title_color": "#6E5873",
-        "subtitle_color": "#A58BB7",
+        "title_color": "#111827",
+        "subtitle_color": "#64748B",
         "panel_color": "#FFFAF8",
         "panel_opacity": 0.20,
         "background_image": "",
@@ -1000,7 +1000,7 @@ def inject_css(state):
 
     st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {{
     --paper: {theme['paper']};
@@ -1192,7 +1192,8 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .question-card {{
     background: var(--cream);
-    border: 2px solid var(--border-lavender);
+    border: 1px solid var(--border-lavender);
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
     border-radius: 28px;
     padding: 28px;
     margin: 20px 0 24px 0;
@@ -1205,7 +1206,8 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .answer-tile {{
     background: var(--cream);
-    border: 2px solid var(--border-lavender);
+    border: 1px solid var(--border-lavender);
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
     border-radius: 22px;
     padding: 18px 22px;
     margin-bottom: 14px;
@@ -1227,7 +1229,8 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 
 .score-card, .bracket-card, .info-card {{
     background: var(--cream);
-    border: 2px solid var(--border-lavender);
+    border: 1px solid var(--border-lavender);
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
     border-radius: 22px;
     padding: 18px;
     margin-bottom: 12px;
