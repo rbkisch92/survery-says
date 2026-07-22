@@ -1055,40 +1055,6 @@ html, body, .stApp {{
     min-height: 100vh !important;
 }}
 
-/* Streamlit's outer viewport must own scrolling on desktop. */
-html,
-body {{
-    width: 100% !important;
-    height: 100% !important;
-    overflow: hidden !important;
-}}
-
-.stApp {{
-    width: 100% !important;
-    min-height: 100% !important;
-    height: auto !important;
-}}
-
-[data-testid="stAppViewContainer"] {{
-    width: 100% !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-}}
-
-[data-testid="stMain"] {{
-    height: auto !important;
-    max-height: none !important;
-}}
-
-/* Let the app shell establish the full document height for the sidebar. */
-.stApp,
-[data-testid="stAppViewContainer"] {{
-    min-height: max(100vh, 100%) !important;
-}}
-
 /*
    Center panel layout:
    The transparent panel is a full-height layer behind the content.
@@ -1133,81 +1099,23 @@ body {{
     box-sizing: border-box !important;
 }}
 
-/* Full-height host panel pinned to the top with independent scrolling. */
+/* Make long host controls scrollable */
 section[data-testid="stSidebar"] {{
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    bottom: 0 !important;
     height: 100vh !important;
-    height: 100dvh !important;
-    min-height: 100vh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
-    align-self: flex-start !important;
-    z-index: 999 !important;
-}}
-
-section[data-testid="stSidebar"] > div:first-child {{
-    position: relative !important;
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
+    max-height: 100vh !important;
     overflow: hidden !important;
 }}
 
+section[data-testid="stSidebar"] > div:first-child,
 section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-top: 1rem !important;
-    padding-bottom: 6rem !important;
-    box-sizing: border-box !important;
-}}
-
-/* Fallback for Streamlit versions without stSidebarContent. */
-section[data-testid="stSidebar"] > div:first-child > div:first-child {{
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-top: 1rem !important;
-    padding-bottom: 6rem !important;
-    box-sizing: border-box !important;
+    padding-bottom: 5rem !important;
 }}
 
 @media (max-width: 900px) {{
-    /* Restore normal document scrolling on mobile Safari. */
-    html,
-    body {{
-        height: auto !important;
-        min-height: 100% !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }}
-
-    .stApp,
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"] {{
-        height: auto !important;
-        max-height: none !important;
-        min-height: 100dvh !important;
-        overflow-x: hidden !important;
-        overflow-y: visible !important;
-    }}
-
-    [data-testid="stMain"] {{
-        display: block !important;
-    }}
-
     .stApp::before {{
         width: 100vw !important;
         height: 100vh !important;
@@ -1229,9 +1137,8 @@ section[data-testid="stSidebar"] > div:first-child > div:first-child {{
     [data-testid="stMainBlockContainer"] {{
         width: 100% !important;
         max-width: 100% !important;
-        min-height: auto !important;
-        height: auto !important;
-        overflow: visible !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
         /* Keep the heading below Streamlit's mobile toolbar. */
         padding: 5.25rem 1rem 4rem 1rem !important;
     }}
