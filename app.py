@@ -1267,64 +1267,34 @@ div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {{
 
 [data-testid="stMetricValue"] {{ color: var(--dusty-rose) !important; }}
 
-/* Keep the host sidebar independent while allowing the game page to scroll. */
-html,
-body {{
-    height: 100% !important;
-    min-height: 100% !important;
-    overflow: hidden !important;
-}}
-
-.stApp {{
-    height: 100vh !important;
-    height: 100dvh !important;
-    min-height: 100vh !important;
-    overflow: hidden !important;
-}}
-
-[data-testid="stAppViewContainer"] {{
-    position: relative !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-}}
-
-[data-testid="stMain"] {{
-    height: auto !important;
-    min-height: 100% !important;
-    overflow: visible !important;
-}}
-
-.main .block-container,
-[data-testid="stMainBlockContainer"] {{
-    height: auto !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important;
-    overflow: visible !important;
-    padding-bottom: 7rem !important;
-}}
-
-/* The host controls remain fixed-height and scroll inside their own panel. */
+/* Host controls now use an overlay instead of Streamlit's sidebar. */
 section[data-testid="stSidebar"] {{
-    height: 100vh !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
+    display: none !important;
 }}
 
-section[data-testid="stSidebar"] > div:first-child,
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-    height: 100% !important;
-    max-height: 100% !important;
+div[data-testid="stDialog"] > div {{
+    width: min(1100px, 94vw) !important;
+    max-width: min(1100px, 94vw) !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+}}
+
+div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {{
+    overflow: visible !important;
+}}
+
+div[data-testid="stDialog"] section {{
     overflow-y: auto !important;
-    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 6rem !important;
-    box-sizing: border-box !important;
+}}
+
+@media (max-width: 700px) {{
+    div[data-testid="stDialog"] > div {{
+        width: 96vw !important;
+        max-width: 96vw !important;
+        max-height: 94dvh !important;
+        margin: 1rem auto !important;
+    }}
 }}
 
 </style>
@@ -1551,330 +1521,380 @@ if view == "player":
                 st.markdown(f'<div class="score-card"><strong>#{rank} {player_name}</strong><br>{data.get("score", 0)} points</div>', unsafe_allow_html=True)
 
 # -----------------------------
-# Host View
+# Host View — Overlay Controls
 # -----------------------------
 
 if view == "host":
-    st.sidebar.header("Host Controls")
+    if "host_controls_open" not in st.session_state:
+        st.session_state["host_controls_open"] = False
 
-    # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
-    with st.sidebar.expander("1. Event Theme + Preset Questions", expanded=True):
-        theme_names = list(THEMES.keys())
-        current_theme = state.get("theme", "Classic Party") if state.get("theme", "Classic Party") in theme_names else "Classic Party"
-        selected_theme = st.selectbox("Event Theme", theme_names, index=theme_names.index(current_theme))
-
-        if selected_theme != state.get("theme"):
-            state["theme"] = selected_theme
-            state["theme_overrides"] = {}
-            selected_colors = THEMES.get(selected_theme, THEMES["Classic Party"])
-
-            # Auto-match font colors to the selected event theme.
-            # Hosts can override these later in Branding + Layout.
-            state["title_color"] = selected_colors["primary"]
-            state["subtitle_color"] = selected_colors["secondary"]
-
-            if selected_theme != "Custom":
-                apply_theme_question_preset(state, selected_theme)
-            save_state(state)
-            st.rerun()
-
-        st.caption("Choose an event theme as your starting point. You can customize colors and fonts in Branding + Layout without switching to Custom.")
-        if selected_theme != "Custom":
-            if st.button("Reload Preset Questions for This Event"):
-                apply_theme_question_preset(state, selected_theme)
-                save_state(state)
-                st.rerun()
-        st.caption(f"Questions: {state.get('questions_source', 'unknown')}")
-
-    # 2) Set game size before teams join/lock.
-    with st.sidebar.expander("2. Game Setup", expanded=True):
-        max_teams = st.number_input("Number of Teams Playing", min_value=2, max_value=20, value=int(state.get("max_teams", 4)), step=1, disabled=state.get("locked", False))
-        q_per_match = st.number_input("Questions per Match", min_value=1, max_value=10, value=int(state.get("questions_per_match", 3)), step=1, disabled=state.get("locked", False))
-        if state.get("locked", False):
-            st.caption("Unlock teams to change these settings.")
-        if not state.get("locked") and (max_teams != state.get("max_teams") or q_per_match != state.get("questions_per_match")):
-            state["max_teams"] = int(max_teams)
-            state["questions_per_match"] = int(q_per_match)
-            save_state(state)
-            st.rerun()
-
-    # 3) Optional branding overrides after the preset has been chosen.
-    with st.sidebar.expander("3. Branding + Layout", expanded=True):
-        theme_colors = get_theme_colors(state)
-        new_title = st.text_input("Game Title", value=state.get("title", "Survey Style Interactive Party Game"))
-        new_subtitle = st.text_input("Subtitle", value=state.get("subtitle", "Tournament Edition"))
-        title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
-        subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
-        font_names = list(FONT_OPTIONS.keys())
-        title_font = st.selectbox(
-            "Title Font",
-            font_names,
-            index=font_names.index(state.get("title_font", "Playfair Display"))
-            if state.get("title_font", "Playfair Display") in FONT_OPTIONS else 0,
-        )
-        body_font = st.selectbox(
-            "Body Font",
-            font_names,
-            index=font_names.index(state.get("body_font", "Cormorant Garamond"))
-            if state.get("body_font", "Cormorant Garamond") in FONT_OPTIONS else 1,
-        )
-        title_color = st.color_picker("Title Color", state.get("title_color", theme_colors["primary"]))
-        subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", theme_colors["secondary"]))
-        panel_color = st.color_picker("Center Panel Color", state.get("panel_color", theme_colors["cream"]))
-        panel_opacity = st.slider("Center Panel Opacity", 5, 95, int(float(state.get("panel_opacity", 0.20)) * 100)) / 100
-
-        st.markdown("**Theme Colors**")
-        if state.get("theme") == "Custom":
-            base_theme = default_custom_theme()
-            base_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
-        else:
-            base_theme = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"]).copy()
-        overrides = state.get("theme_overrides", {}) if isinstance(state.get("theme_overrides"), dict) else {}
-        new_overrides = {}
-        for label, key in THEME_COLOR_FIELDS:
-            new_overrides[key] = st.color_picker(
-                label,
-                overrides.get(key, base_theme.get(key, "#FFFFFF")),
-                key=f"theme_override_{key}",
-            )
-
-        st.markdown("**Background Designer**")
-        bg_upload = st.file_uploader("Upload Background Image", type=["png", "jpg", "jpeg", "webp"])
-        background_style = st.selectbox(
-            "Background Style",
-            ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"],
-            index=["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"].index(state.get("background_style", "Fill / Cover"))
-            if state.get("background_style", "Fill / Cover") in ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"] else 0,
-            help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless backgrounds or icon patterns.",
-        )
-        pattern_size = st.slider("Pattern / Image Scale", 40, 700, int(state.get("background_pattern_size", 220)), 10)
-        bg_position = st.selectbox(
-            "Background Position",
-            ["Center", "Top", "Bottom", "Left", "Right"],
-            index=["Center", "Top", "Bottom", "Left", "Right"].index(state.get("background_position", "Center"))
-            if state.get("background_position", "Center") in ["Center", "Top", "Bottom", "Left", "Right"] else 0,
-        )
-        bg_brightness = st.slider("Background Brightness", 30, 130, int(state.get("background_brightness", 100)), 5)
-        bg_blur = st.slider("Background Blur", 0, 12, int(state.get("background_blur", 0)), 1)
-
-        changed = False
-        for key, value in {
-            "title": new_title,
-            "subtitle": new_subtitle,
-            "title_font": title_font,
-            "body_font": body_font,
-            "title_size": title_size,
-            "subtitle_size": subtitle_size,
-            "title_color": title_color,
-            "subtitle_color": subtitle_color,
-            "panel_color": panel_color,
-            "panel_opacity": panel_opacity,
-            "theme_overrides": new_overrides,
-            "background_style": background_style,
-            "background_pattern_size": pattern_size,
-            "background_position": bg_position,
-            "background_brightness": bg_brightness,
-            "background_blur": bg_blur,
-        }.items():
-            if state.get(key) != value:
-                state[key] = value
-                changed = True
-
-        if bg_upload is not None:
-            raw_upload = bg_upload.getvalue()
-            current_upload_hash = hashlib.sha256(raw_upload).hexdigest()
-
-            # Streamlit keeps file_uploader populated across reruns. Only process
-            # the file when it differs from the background already saved.
-            if current_upload_hash != state.get("background_image_hash", ""):
-                try:
-                    encoded, mime, upload_hash, original_bytes, compressed_bytes = encode_uploaded_image(bg_upload)
-                    state["background_image"] = encoded
-                    state["background_mime"] = mime
-                    state["background_image_hash"] = upload_hash
-                    changed = True
-                    st.success(
-                        f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
-                        f"to {compressed_bytes / 1024:.0f} KB."
-                    )
-                except Exception as exc:
-                    st.error(f"Could not process that background image: {exc}")
-
-        col_a, col_b = st.columns(2)
-        with col_a:
-            if st.button("Use Theme Font Colors"):
-                state["title_color"] = theme_colors["primary"]
-                state["subtitle_color"] = theme_colors["secondary"]
-                changed = True
-        with col_b:
-            if st.button("Reset Colors to Selected Theme"):
-                state["theme_overrides"] = {}
-                reset_colors = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"])
-                state["title_color"] = reset_colors["primary"]
-                state["subtitle_color"] = reset_colors["secondary"]
-                state["panel_color"] = reset_colors["cream"]
-                changed = True
-
-        if state.get("background_image") and st.button("Remove Background"):
-            state["background_image"] = ""
-            state["background_mime"] = "image/png"
-            state["background_image_hash"] = ""
-            changed = True
-
-        if changed:
-            save_state(state)
-            st.rerun()
-
-    # 4) Bring your own questions, if desired.
-    with st.sidebar.expander("4. Custom Questions", expanded=False):
-        st.caption("Required columns: game_type, question, answer, points. Use game_type values main or fast_money.")
-        st.download_button("Download Question Template", data=question_template_csv(), file_name="survey_game_question_template.csv", mime="text/csv")
-        uploaded_questions = st.file_uploader("Upload completed CSV template", type=["csv"])
-        if uploaded_questions is not None and st.button("Load Uploaded Questions"):
-            try:
-                main_qs, fast_qs = load_questions_from_upload(uploaded_questions)
-                state["questions"] = main_qs
-                state["fast_money_questions"] = fast_qs
-                state["google_sheet_url"] = ""
-                state["questions_source"] = "uploaded CSV"
-                state["current_question_index"] = 0
-                state["match_question_number"] = 1
-                reset_question_state(state)
-                save_state(state)
-                st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from CSV.")
-                st.rerun()
-            except Exception as error:
-                st.error(f"Could not load uploaded questions: {error}")
-        st.divider()
-        csv_url = st.text_input("Or paste a published Google Sheet CSV URL", value=state.get("google_sheet_url", ""))
-        if st.button("Load Questions from URL"):
-            try:
-                main_qs, fast_qs = load_questions_from_csv(csv_url)
-                state["questions"] = main_qs
-                state["fast_money_questions"] = fast_qs
-                state["google_sheet_url"] = csv_url
-                state["questions_source"] = "Google Sheet URL"
-                state["current_question_index"] = 0
-                state["match_question_number"] = 1
-                reset_question_state(state)
-                save_state(state)
-                st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from URL.")
-                st.rerun()
-            except Exception as error:
-                st.error(f"Could not load questions from URL: {error}")
-
-    # 5) Review questions after choosing a theme or uploading custom questions.
-    with st.sidebar.expander("5. Questions Preview", expanded=False):
-        st.write(f"Main Questions: {len(state.get('questions', []))}")
-        for i, item in enumerate(state.get("questions", []), start=1):
-            with st.expander(f"{i}. {item.get('question', '')[:45]}"):
-                for answer, points in item.get("answers", []):
-                    st.write(f"• {answer} — {points}")
-        st.write(f"Fast Money Questions: {len(state.get('fast_money_questions', []))}")
-        for i, item in enumerate(state.get("fast_money_questions", []), start=1):
-            st.caption(f"{i}. {item.get('question', '')}")
-
-    # 6) Lock teams and run the bracket.
-    with st.sidebar.expander("6. Teams + Bracket", expanded=True):
-        st.write(f"Teams signed up: {len(state.get('teams', {}))}/{state.get('max_teams', 4)}")
-        if not state.get("locked"):
-            if st.button("Lock Teams + Build Bracket"):
-                if len(state.get("teams", {})) < 2:
-                    st.error("You need at least 2 teams to play.")
-                else:
-                    state["locked"] = True
-                    selected_team_names = list(state["teams"].keys())[:int(state.get("max_teams", 4))]
-                    state["matches"] = build_initial_matches(selected_team_names, int(state.get("max_teams", 4)))
-                    state["current_match_index"] = 0
-                    state["round_winners"] = []
-                    state["match_scores"] = {}
-                    state["total_scores"] = {team: 0 for team in selected_team_names}
-                    state["tournament_complete"] = False
-                    state["champion_team"] = ""
-                    state["fast_money_started"] = False
-                    state["fast_money_answers"] = {}
-                    state["match_question_number"] = 1
-                    reset_question_state(state)
-                    set_active_match_from_index(state)
-                    save_state(state)
-                    st.rerun()
-        else:
-            if st.button("Unlock Teams"):
-                state["locked"] = False
-                save_state(state)
-                st.rerun()
-
+    # Keep the actual game visible on the page.
     render_bracket(state)
 
     if state.get("locked") and not state.get("tournament_complete"):
         render_scoreboard(state)
         render_answer_board(state)
-        q_cur = current_question(state)
-        st.sidebar.subheader("Reveal Answers")
-        for idx, (answer, points) in enumerate(q_cur["answers"]):
-            if st.sidebar.button(f"Reveal {idx + 1}: {answer} ({points})"):
-                if idx not in state["revealed"]:
-                    state["revealed"].append(idx)
-                    state["round_bank"] += int(points)
-                    state["message"] = f"{answer} is on the board!"
-                    save_state(state)
-                    st.rerun()
-        active = [t for t in state.get("active_teams", []) if t != "BYE"]
-        st.sidebar.subheader("Award / Steal")
-        for team in active:
-            if st.sidebar.button(f"Award Bank to {team}"):
-                award_bank(state, team)
-                save_state(state)
-                st.rerun()
-        if st.sidebar.button("1 Strike → Enable Steal"):
-            state["strike"] = True
-            state["steal_mode"] = True
-            state["message"] = "Strike! The other team gets one chance to steal."
-            save_state(state)
-            st.rerun()
-        st.sidebar.subheader("Match Flow")
-        if st.sidebar.button("Next Question in Match"):
-            advance_question_in_match(state)
-            save_state(state)
-            st.rerun()
-        if st.sidebar.button("End Match / Auto-Advance Winner"):
-            end_match_and_advance(state)
-            save_state(state)
-            st.rerun()
-        if st.sidebar.button("Reset Current Question"):
-            reset_question_state(state)
-            save_state(state)
-            st.rerun()
+        if state.get("strike"):
+            st.markdown(
+                '<div class="message">Strike! The other team may steal.</div>',
+                unsafe_allow_html=True,
+            )
+        if state.get("message"):
+            st.markdown(
+                f'<div class="message">{state["message"]}</div>',
+                unsafe_allow_html=True,
+            )
 
     if state.get("tournament_complete"):
         st.success(f"Tournament Champion Team: {state.get('champion_team')}")
-        st.header("Fast Money Individual Championship")
-        if not state.get("fast_money_started"):
-            if st.button("Start Fast Money Timer"):
-                state["fast_money_started"] = True
-                state["fast_money_start_time"] = int(time.time())
-                state["fast_money_answers"] = {}
-                save_state(state)
-                st.rerun()
-        else:
+        if state.get("fast_money_started"):
             remaining = timer_remaining(state)
             st.metric("Fast Money Time Remaining", f"{remaining}s")
             st.progress(remaining / FAST_MONEY_SECONDS)
-            if st.button("Restart Fast Money Timer"):
-                state["fast_money_start_time"] = int(time.time())
-                state["fast_money_answers"] = {}
+
+    # Button stays on the game page; clicking it opens the control overlay.
+    open_col, spacer_col = st.columns([1, 4])
+    with open_col:
+        if st.button(
+            "⚙️ Host Controls",
+            type="primary",
+            use_container_width=True,
+            key="open_host_controls",
+        ):
+            st.session_state["host_controls_open"] = True
+            st.rerun()
+
+    @st.dialog("Host Control Center", width="large")
+    def render_host_controls_overlay():
+        close_col, title_col = st.columns([1, 5])
+        with close_col:
+            if st.button("✕ Close", use_container_width=True, key="close_host_controls"):
+                st.session_state["host_controls_open"] = False
+                st.rerun()
+        with title_col:
+            st.caption(
+                "Manage the theme, teams, questions, scoring, tournament, and Fast Money."
+            )
+
+        st.markdown("### Host Control Center")
+
+        # 1) Pick the event/theme first. This sets the overall look and loads matching questions.
+        with st.expander("1. Event Theme + Preset Questions", expanded=True):
+            theme_names = list(THEMES.keys())
+            current_theme = state.get("theme", "Classic Party") if state.get("theme", "Classic Party") in theme_names else "Classic Party"
+            selected_theme = st.selectbox("Event Theme", theme_names, index=theme_names.index(current_theme))
+
+            if selected_theme != state.get("theme"):
+                state["theme"] = selected_theme
+                state["theme_overrides"] = {}
+                selected_colors = THEMES.get(selected_theme, THEMES["Classic Party"])
+
+                # Auto-match font colors to the selected event theme.
+                # Hosts can override these later in Branding + Layout.
+                state["title_color"] = selected_colors["primary"]
+                state["subtitle_color"] = selected_colors["secondary"]
+
+                if selected_theme != "Custom":
+                    apply_theme_question_preset(state, selected_theme)
                 save_state(state)
                 st.rerun()
-        if state.get("fast_money_answers"):
-            st.subheader("Leaderboard")
-            leaderboard = sorted(state["fast_money_answers"].items(), key=lambda item: item[1].get("score", 0), reverse=True)
-            for rank, (player_name, data) in enumerate(leaderboard, start=1):
-                st.markdown(f'<div class="score-card"><strong>#{rank} {player_name}</strong><br>{data.get("score", 0)} points</div>', unsafe_allow_html=True)
-                with st.expander(f"See {player_name}'s answer matches"):
-                    for result in data.get("results", []):
-                        st.write(f"{result.get('question')}: typed '{result.get('typed')}' → matched '{result.get('matched')}' ({result.get('similarity')}%) = {result.get('points')} pts")
 
-    st.sidebar.divider()
-    if st.sidebar.button("Reset Entire Game"):
-        save_state(default_state())
-        st.rerun()
+            st.caption("Choose an event theme as your starting point. You can customize colors and fonts in Branding + Layout without switching to Custom.")
+            if selected_theme != "Custom":
+                if st.button("Reload Preset Questions for This Event"):
+                    apply_theme_question_preset(state, selected_theme)
+                    save_state(state)
+                    st.rerun()
+            st.caption(f"Questions: {state.get('questions_source', 'unknown')}")
+
+        # 2) Set game size before teams join/lock.
+        with st.expander("2. Game Setup", expanded=True):
+            max_teams = st.number_input("Number of Teams Playing", min_value=2, max_value=20, value=int(state.get("max_teams", 4)), step=1, disabled=state.get("locked", False))
+            q_per_match = st.number_input("Questions per Match", min_value=1, max_value=10, value=int(state.get("questions_per_match", 3)), step=1, disabled=state.get("locked", False))
+            if state.get("locked", False):
+                st.caption("Unlock teams to change these settings.")
+            if not state.get("locked") and (max_teams != state.get("max_teams") or q_per_match != state.get("questions_per_match")):
+                state["max_teams"] = int(max_teams)
+                state["questions_per_match"] = int(q_per_match)
+                save_state(state)
+                st.rerun()
+
+        # 3) Optional branding overrides after the preset has been chosen.
+        with st.expander("3. Branding + Layout", expanded=True):
+            theme_colors = get_theme_colors(state)
+            new_title = st.text_input("Game Title", value=state.get("title", "Survey Style Interactive Party Game"))
+            new_subtitle = st.text_input("Subtitle", value=state.get("subtitle", "Tournament Edition"))
+            title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
+            subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
+            font_names = list(FONT_OPTIONS.keys())
+            title_font = st.selectbox(
+                "Title Font",
+                font_names,
+                index=font_names.index(state.get("title_font", "Playfair Display"))
+                if state.get("title_font", "Playfair Display") in FONT_OPTIONS else 0,
+            )
+            body_font = st.selectbox(
+                "Body Font",
+                font_names,
+                index=font_names.index(state.get("body_font", "Cormorant Garamond"))
+                if state.get("body_font", "Cormorant Garamond") in FONT_OPTIONS else 1,
+            )
+            title_color = st.color_picker("Title Color", state.get("title_color", theme_colors["primary"]))
+            subtitle_color = st.color_picker("Subtitle Color", state.get("subtitle_color", theme_colors["secondary"]))
+            panel_color = st.color_picker("Center Panel Color", state.get("panel_color", theme_colors["cream"]))
+            panel_opacity = st.slider("Center Panel Opacity", 5, 95, int(float(state.get("panel_opacity", 0.20)) * 100)) / 100
+
+            st.markdown("**Theme Colors**")
+            if state.get("theme") == "Custom":
+                base_theme = default_custom_theme()
+                base_theme.update(state.get("custom_theme", {}) if isinstance(state.get("custom_theme"), dict) else {})
+            else:
+                base_theme = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"]).copy()
+            overrides = state.get("theme_overrides", {}) if isinstance(state.get("theme_overrides"), dict) else {}
+            new_overrides = {}
+            for label, key in THEME_COLOR_FIELDS:
+                new_overrides[key] = st.color_picker(
+                    label,
+                    overrides.get(key, base_theme.get(key, "#FFFFFF")),
+                    key=f"theme_override_{key}",
+                )
+
+            st.markdown("**Background Designer**")
+            bg_upload = st.file_uploader("Upload Background Image", type=["png", "jpg", "jpeg", "webp"])
+            background_style = st.selectbox(
+                "Background Style",
+                ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"],
+                index=["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"].index(state.get("background_style", "Fill / Cover"))
+                if state.get("background_style", "Fill / Cover") in ["Fill / Cover", "Fit / Contain", "Repeat Pattern", "Repeat Horizontally", "Repeat Vertically"] else 0,
+                help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless backgrounds or icon patterns.",
+            )
+            pattern_size = st.slider("Pattern / Image Scale", 40, 700, int(state.get("background_pattern_size", 220)), 10)
+            bg_position = st.selectbox(
+                "Background Position",
+                ["Center", "Top", "Bottom", "Left", "Right"],
+                index=["Center", "Top", "Bottom", "Left", "Right"].index(state.get("background_position", "Center"))
+                if state.get("background_position", "Center") in ["Center", "Top", "Bottom", "Left", "Right"] else 0,
+            )
+            bg_brightness = st.slider("Background Brightness", 30, 130, int(state.get("background_brightness", 100)), 5)
+            bg_blur = st.slider("Background Blur", 0, 12, int(state.get("background_blur", 0)), 1)
+
+            changed = False
+            for key, value in {
+                "title": new_title,
+                "subtitle": new_subtitle,
+                "title_font": title_font,
+                "body_font": body_font,
+                "title_size": title_size,
+                "subtitle_size": subtitle_size,
+                "title_color": title_color,
+                "subtitle_color": subtitle_color,
+                "panel_color": panel_color,
+                "panel_opacity": panel_opacity,
+                "theme_overrides": new_overrides,
+                "background_style": background_style,
+                "background_pattern_size": pattern_size,
+                "background_position": bg_position,
+                "background_brightness": bg_brightness,
+                "background_blur": bg_blur,
+            }.items():
+                if state.get(key) != value:
+                    state[key] = value
+                    changed = True
+
+            if bg_upload is not None:
+                raw_upload = bg_upload.getvalue()
+                current_upload_hash = hashlib.sha256(raw_upload).hexdigest()
+
+                # Streamlit keeps file_uploader populated across reruns. Only process
+                # the file when it differs from the background already saved.
+                if current_upload_hash != state.get("background_image_hash", ""):
+                    try:
+                        encoded, mime, upload_hash, original_bytes, compressed_bytes = encode_uploaded_image(bg_upload)
+                        state["background_image"] = encoded
+                        state["background_mime"] = mime
+                        state["background_image_hash"] = upload_hash
+                        changed = True
+                        st.success(
+                            f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
+                            f"to {compressed_bytes / 1024:.0f} KB."
+                        )
+                    except Exception as exc:
+                        st.error(f"Could not process that background image: {exc}")
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("Use Theme Font Colors"):
+                    state["title_color"] = theme_colors["primary"]
+                    state["subtitle_color"] = theme_colors["secondary"]
+                    changed = True
+            with col_b:
+                if st.button("Reset Colors to Selected Theme"):
+                    state["theme_overrides"] = {}
+                    reset_colors = THEMES.get(state.get("theme", "Classic Party"), THEMES["Classic Party"])
+                    state["title_color"] = reset_colors["primary"]
+                    state["subtitle_color"] = reset_colors["secondary"]
+                    state["panel_color"] = reset_colors["cream"]
+                    changed = True
+
+            if state.get("background_image") and st.button("Remove Background"):
+                state["background_image"] = ""
+                state["background_mime"] = "image/png"
+                state["background_image_hash"] = ""
+                changed = True
+
+            if changed:
+                save_state(state)
+                st.rerun()
+
+        # 4) Bring your own questions, if desired.
+        with st.expander("4. Custom Questions", expanded=False):
+            st.caption("Required columns: game_type, question, answer, points. Use game_type values main or fast_money.")
+            st.download_button("Download Question Template", data=question_template_csv(), file_name="survey_game_question_template.csv", mime="text/csv")
+            uploaded_questions = st.file_uploader("Upload completed CSV template", type=["csv"])
+            if uploaded_questions is not None and st.button("Load Uploaded Questions"):
+                try:
+                    main_qs, fast_qs = load_questions_from_upload(uploaded_questions)
+                    state["questions"] = main_qs
+                    state["fast_money_questions"] = fast_qs
+                    state["google_sheet_url"] = ""
+                    state["questions_source"] = "uploaded CSV"
+                    state["current_question_index"] = 0
+                    state["match_question_number"] = 1
+                    reset_question_state(state)
+                    save_state(state)
+                    st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from CSV.")
+                    st.rerun()
+                except Exception as error:
+                    st.error(f"Could not load uploaded questions: {error}")
+            st.divider()
+            csv_url = st.text_input("Or paste a published Google Sheet CSV URL", value=state.get("google_sheet_url", ""))
+            if st.button("Load Questions from URL"):
+                try:
+                    main_qs, fast_qs = load_questions_from_csv(csv_url)
+                    state["questions"] = main_qs
+                    state["fast_money_questions"] = fast_qs
+                    state["google_sheet_url"] = csv_url
+                    state["questions_source"] = "Google Sheet URL"
+                    state["current_question_index"] = 0
+                    state["match_question_number"] = 1
+                    reset_question_state(state)
+                    save_state(state)
+                    st.success(f"Loaded {len(main_qs)} main questions and {len(fast_qs)} Fast Money questions from URL.")
+                    st.rerun()
+                except Exception as error:
+                    st.error(f"Could not load questions from URL: {error}")
+
+        # 5) Review questions after choosing a theme or uploading custom questions.
+        with st.expander("5. Questions Preview", expanded=False):
+            st.write(f"Main Questions: {len(state.get('questions', []))}")
+            for i, item in enumerate(state.get("questions", []), start=1):
+                with st.expander(f"{i}. {item.get('question', '')[:45]}"):
+                    for answer, points in item.get("answers", []):
+                        st.write(f"• {answer} — {points}")
+            st.write(f"Fast Money Questions: {len(state.get('fast_money_questions', []))}")
+            for i, item in enumerate(state.get("fast_money_questions", []), start=1):
+                st.caption(f"{i}. {item.get('question', '')}")
+
+        # 6) Lock teams and run the bracket.
+        with st.expander("6. Teams + Bracket", expanded=True):
+            st.write(f"Teams signed up: {len(state.get('teams', {}))}/{state.get('max_teams', 4)}")
+            if not state.get("locked"):
+                if st.button("Lock Teams + Build Bracket"):
+                    if len(state.get("teams", {})) < 2:
+                        st.error("You need at least 2 teams to play.")
+                    else:
+                        state["locked"] = True
+                        selected_team_names = list(state["teams"].keys())[:int(state.get("max_teams", 4))]
+                        state["matches"] = build_initial_matches(selected_team_names, int(state.get("max_teams", 4)))
+                        state["current_match_index"] = 0
+                        state["round_winners"] = []
+                        state["match_scores"] = {}
+                        state["total_scores"] = {team: 0 for team in selected_team_names}
+                        state["tournament_complete"] = False
+                        state["champion_team"] = ""
+                        state["fast_money_started"] = False
+                        state["fast_money_answers"] = {}
+                        state["match_question_number"] = 1
+                        reset_question_state(state)
+                        set_active_match_from_index(state)
+                        save_state(state)
+                        st.rerun()
+            else:
+                if st.button("Unlock Teams"):
+                    state["locked"] = False
+                    save_state(state)
+                    st.rerun()
+
+        if state.get("locked") and not state.get("tournament_complete"):
+            q_cur = current_question(state)
+            st.subheader("Reveal Answers")
+            for idx, (answer, points) in enumerate(q_cur["answers"]):
+                if st.button(f"Reveal {idx + 1}: {answer} ({points})"):
+                    if idx not in state["revealed"]:
+                        state["revealed"].append(idx)
+                        state["round_bank"] += int(points)
+                        state["message"] = f"{answer} is on the board!"
+                        save_state(state)
+                        st.rerun()
+            active = [t for t in state.get("active_teams", []) if t != "BYE"]
+            st.subheader("Award / Steal")
+            for team in active:
+                if st.button(f"Award Bank to {team}"):
+                    award_bank(state, team)
+                    save_state(state)
+                    st.rerun()
+            if st.button("1 Strike → Enable Steal"):
+                state["strike"] = True
+                state["steal_mode"] = True
+                state["message"] = "Strike! The other team gets one chance to steal."
+                save_state(state)
+                st.rerun()
+            st.subheader("Match Flow")
+            if st.button("Next Question in Match"):
+                advance_question_in_match(state)
+                save_state(state)
+                st.rerun()
+            if st.button("End Match / Auto-Advance Winner"):
+                end_match_and_advance(state)
+                save_state(state)
+                st.rerun()
+            if st.button("Reset Current Question"):
+                reset_question_state(state)
+                save_state(state)
+                st.rerun()
+
+        if state.get("tournament_complete"):
+            st.success(f"Tournament Champion Team: {state.get('champion_team')}")
+            st.header("Fast Money Individual Championship")
+            if not state.get("fast_money_started"):
+                if st.button("Start Fast Money Timer"):
+                    state["fast_money_started"] = True
+                    state["fast_money_start_time"] = int(time.time())
+                    state["fast_money_answers"] = {}
+                    save_state(state)
+                    st.rerun()
+            else:
+                remaining = timer_remaining(state)
+                st.metric("Fast Money Time Remaining", f"{remaining}s")
+                st.progress(remaining / FAST_MONEY_SECONDS)
+                if st.button("Restart Fast Money Timer"):
+                    state["fast_money_start_time"] = int(time.time())
+                    state["fast_money_answers"] = {}
+                    save_state(state)
+                    st.rerun()
+            if state.get("fast_money_answers"):
+                st.subheader("Leaderboard")
+                leaderboard = sorted(state["fast_money_answers"].items(), key=lambda item: item[1].get("score", 0), reverse=True)
+                for rank, (player_name, data) in enumerate(leaderboard, start=1):
+                    st.markdown(f'<div class="score-card"><strong>#{rank} {player_name}</strong><br>{data.get("score", 0)} points</div>', unsafe_allow_html=True)
+                    with st.expander(f"See {player_name}'s answer matches"):
+                        for result in data.get("results", []):
+                            st.write(f"{result.get('question')}: typed '{result.get('typed')}' → matched '{result.get('matched')}' ({result.get('similarity')}%) = {result.get('points')} pts")
+
+        st.divider()
+        if st.button("Reset Entire Game"):
+            save_state(default_state())
+            st.rerun()
+
+    if st.session_state.get("host_controls_open"):
+        render_host_controls_overlay()
