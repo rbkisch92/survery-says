@@ -1269,20 +1269,20 @@ div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {{
 
 /* Keep the host sidebar independent while allowing the game page to scroll. */
 html,
-body {
+body {{
     height: 100% !important;
     min-height: 100% !important;
     overflow: hidden !important;
-}
+}}
 
-.stApp {
+.stApp {{
     height: 100vh !important;
     height: 100dvh !important;
     min-height: 100vh !important;
     overflow: hidden !important;
-}
+}}
 
-[data-testid="stAppViewContainer"] {
+[data-testid="stAppViewContainer"] {{
     position: relative !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -1291,33 +1291,33 @@ body {
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-}
+}}
 
-[data-testid="stMain"] {
+[data-testid="stMain"] {{
     height: auto !important;
     min-height: 100% !important;
     overflow: visible !important;
-}
+}}
 
 .main .block-container,
-[data-testid="stMainBlockContainer"] {
+[data-testid="stMainBlockContainer"] {{
     height: auto !important;
     min-height: 100vh !important;
     min-height: 100dvh !important;
     overflow: visible !important;
     padding-bottom: 7rem !important;
-}
+}}
 
 /* The host controls remain fixed-height and scroll inside their own panel. */
-section[data-testid="stSidebar"] {
+section[data-testid="stSidebar"] {{
     height: 100vh !important;
     height: 100dvh !important;
     max-height: 100dvh !important;
     overflow: hidden !important;
-}
+}}
 
 section[data-testid="stSidebar"] > div:first-child,
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
     height: 100% !important;
     max-height: 100% !important;
     overflow-y: auto !important;
@@ -1325,7 +1325,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
     -webkit-overflow-scrolling: touch;
     padding-bottom: 6rem !important;
     box-sizing: border-box !important;
-}
+}}
 
 </style>
 """, unsafe_allow_html=True)
