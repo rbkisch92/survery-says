@@ -1127,20 +1127,37 @@ body {{
     box-sizing: border-box !important;
 }}
 
-/* Make long host controls scrollable */
+/* Keep the host panel fully accessible on desktop and mobile. */
 section[data-testid="stSidebar"] {{
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: visible !important;
+}}
+
+section[data-testid="stSidebar"] > div:first-child {{
+    height: 100% !important;
+    max-height: 100% !important;
     overflow: hidden !important;
 }}
 
-section[data-testid="stSidebar"] > div:first-child,
 section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100% !important;
+    max-height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding-bottom: 5rem !important;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-bottom: 8rem !important;
+    box-sizing: border-box !important;
+}}
+
+/* Fallback for Streamlit versions without stSidebarContent. */
+section[data-testid="stSidebar"] > div:first-child > div:first-child {{
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 8rem !important;
+    box-sizing: border-box !important;
 }}
 
 @media (max-width: 900px) {{
