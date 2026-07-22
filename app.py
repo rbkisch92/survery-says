@@ -42,14 +42,14 @@ FUZZY_THRESHOLD = 78
 
 THEMES = {
     "Classic Party": {
-        "paper": "#F5F5F4",
+        "paper": "#F4F1EF",
         "cream": "#FFFFFF",
-        "primary": "#1F2937",
-        "secondary": "#64748B",
-        "accent": "#E2E8F0",
-        "border": "#CBD5E1",
-        "highlight": "#EEF2F7",
-        "sidebar": "#F8FAFC"
+        "primary": "#2F2926",
+        "secondary": "#8A756C",
+        "accent": "#E9D6CD",
+        "border": "#DDD4CF",
+        "highlight": "#D9B29E",
+        "sidebar": "#F8F5F3",
     },
     "Baby Shower - Boy": {
         "paper": "#F5F9FD", "cream": "#FFFFFF", "primary": "#355C7D", "secondary": "#5D8AA8",
@@ -393,8 +393,8 @@ def default_state():
         "body_font": "Verdana",
         "title_size": 56,
         "subtitle_size": 24,
-        "title_color": "#111827",
-        "subtitle_color": "#64748B",
+        "title_color": "#2F2926",
+        "subtitle_color": "#8A756C",
         "panel_color": "#FFFAF8",
         "panel_opacity": 0.20,
         "background_image": "",
@@ -593,7 +593,13 @@ def migrate_state(state):
     if state.get("title_font") not in FONT_OPTIONS:
         state["title_font"] = "Playfair Display"
     if state.get("body_font") not in FONT_OPTIONS:
-        state["body_font"] = "Cormorant Garamond"
+        state["body_font"] = "Arial"
+
+    # Migrate older default branding colors to the current modern palette.
+    if state.get("title_color") in {"#6E5873", "#111827"}:
+        state["title_color"] = "#2F2926"
+    if state.get("subtitle_color") in {"#A58BB7", "#64748B"}:
+        state["subtitle_color"] = "#8A756C"
     if not state.get("questions"):
         state["questions"] = preset_questions_for_theme(state.get("theme", "Classic Party"))[0]
     if not state.get("fast_money_questions"):
@@ -1307,6 +1313,172 @@ div[data-testid="stDialog"] section {{
         max-width: 96vw !important;
         max-height: 94dvh !important;
         margin: 1rem auto !important;
+    }}
+}}
+
+
+/* Soft modern dashboard visual system */
+:root {{
+    --modern-bg: #F4F1EF;
+    --modern-surface: rgba(255, 255, 255, 0.96);
+    --modern-text: #2F2926;
+    --modern-muted: #8A756C;
+    --modern-accent: #D9B29E;
+    --modern-accent-soft: #F2E4DE;
+    --modern-border: rgba(104, 87, 78, 0.14);
+    --modern-shadow: 0 14px 38px rgba(73, 55, 47, 0.10);
+}}
+
+.main-title {{
+    color: #2F2926 !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.045em !important;
+    line-height: 0.98 !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.45rem !important;
+}}
+
+.subtitle {{
+    color: #8A756C !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.015em !important;
+    margin-bottom: 2rem !important;
+}}
+
+.question-card {{
+    background: var(--modern-surface) !important;
+    color: var(--modern-text) !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--modern-shadow) !important;
+    padding: clamp(1.5rem, 3vw, 2.4rem) !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.025em !important;
+}}
+
+.answer-tile {{
+    background: var(--modern-surface) !important;
+    color: var(--modern-text) !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 24px rgba(73, 55, 47, 0.075) !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 650 !important;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}}
+
+.answer-tile:hover {{
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(73, 55, 47, 0.11) !important;
+}}
+
+.answer-hidden {{
+    background: #E8D3C9 !important;
+    color: rgba(47, 41, 38, 0.42) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}}
+
+.score-card,
+.bracket-card,
+.info-card {{
+    background: var(--modern-surface) !important;
+    color: var(--modern-text) !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 10px 28px rgba(73, 55, 47, 0.085) !important;
+    padding: 1.35rem !important;
+}}
+
+.score-number {{
+    color: #B7836C !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.05em !important;
+}}
+
+.small-note {{
+    color: var(--modern-muted) !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 500 !important;
+}}
+
+.message {{
+    color: #8A5F4E !important;
+    background: rgba(255,255,255,0.88) !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 16px !important;
+    padding: 0.9rem 1.1rem !important;
+    box-shadow: 0 8px 24px rgba(73,55,47,0.07) !important;
+}}
+
+.stButton button {{
+    background: #D9B29E !important;
+    color: #2F2926 !important;
+    border: 1px solid rgba(96, 68, 56, 0.10) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 7px 18px rgba(111, 78, 63, 0.12) !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-weight: 650 !important;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}}
+
+.stButton button:hover {{
+    filter: brightness(0.985);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(111, 78, 63, 0.17) !important;
+}}
+
+div[data-testid="stDialog"] > div {{
+    background: #F8F5F3 !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 26px 80px rgba(47, 41, 38, 0.22) !important;
+}}
+
+[data-testid="stExpander"] {{
+    background: #FFFFFF !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 5px 18px rgba(73, 55, 47, 0.055) !important;
+    overflow: hidden !important;
+}}
+
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox div[data-baseweb="select"] > div,
+div[data-baseweb="input"] input,
+div[data-baseweb="textarea"] textarea {{
+    border-radius: 12px !important;
+    border-color: rgba(104, 87, 78, 0.18) !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+}}
+
+[data-testid="stMainBlockContainer"] {{
+    padding-top: 2.25rem !important;
+    padding-bottom: 6rem !important;
+}}
+
+@media (max-width: 700px) {{
+    .main-title {{
+        margin-top: 2rem !important;
+        letter-spacing: -0.035em !important;
+    }}
+
+    .subtitle {{
+        margin-bottom: 1.4rem !important;
+    }}
+
+    .question-card {{
+        border-radius: 20px !important;
+    }}
+
+    .answer-tile,
+    .score-card {{
+        border-radius: 16px !important;
     }}
 }}
 
