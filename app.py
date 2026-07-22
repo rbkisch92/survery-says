@@ -1258,7 +1258,13 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 section[data-testid="stSidebar"] {{ background: {theme['sidebar']} !important; }}
 section[data-testid="stSidebar"] * {{ color: var(--plum) !important; }}
 
-input, textarea, select {{ color: var(--plum) !important; background: #FFFFFF !important; }}
+input:not([type="color"]), textarea, select {{ color: var(--plum) !important; background: #FFFFFF !important; }}
+
+/* Keep Streamlit color pickers clickable and preserve their swatch color. */
+input[type="color"], [data-testid="stColorPicker"] button {{
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}}
 .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div,
 div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {{
     background: #FFFFFF !important;
@@ -1781,48 +1787,56 @@ if view == "host":
             st.caption(f"Current questions: {state.get('questions_source', 'unknown')}")
 
         # 2) Upload and adjust the background before editing the rest of the design.
+        # Widgets are intentionally outside st.form so sliders, uploads and pickers
+        # remain fully interactive inside the dialog.
         with st.expander("2. Background Upload", expanded=True):
-            with st.form("background_editor_form", clear_on_submit=False):
-                bg_upload = st.file_uploader(
-                    "Upload Background Image",
-                    type=["png", "jpg", "jpeg", "webp"],
-                    key="host_background_upload",
-                )
-                styles = [
-                    "Fill / Cover", "Fit / Contain", "Repeat Pattern",
-                    "Repeat Horizontally", "Repeat Vertically",
-                ]
-                positions = ["Center", "Top", "Bottom", "Left", "Right"]
-                background_style = st.selectbox(
-                    "Background Style",
-                    styles,
-                    index=styles.index(state.get("background_style", "Fill / Cover"))
-                    if state.get("background_style", "Fill / Cover") in styles else 0,
-                    help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless designs.",
-                )
-                pattern_size = st.slider(
-                    "Pattern / Image Scale", 40, 700,
-                    int(state.get("background_pattern_size", 220)), 10,
-                )
-                bg_position = st.selectbox(
-                    "Background Position",
-                    positions,
-                    index=positions.index(state.get("background_position", "Center"))
-                    if state.get("background_position", "Center") in positions else 0,
-                )
-                bg_brightness = st.slider(
-                    "Background Brightness", 30, 130,
-                    int(state.get("background_brightness", 100)), 5,
-                )
-                bg_blur = st.slider(
-                    "Background Blur", 0, 12,
-                    int(state.get("background_blur", 0)), 1,
-                )
-                apply_background = st.form_submit_button(
-                    "Apply Background Changes", type="primary", use_container_width=True
-                )
+            bg_upload = st.file_uploader(
+                "Upload Background Image",
+                type=["png", "jpg", "jpeg", "webp"],
+                key="host_background_upload",
+            )
+            styles = [
+                "Fill / Cover", "Fit / Contain", "Repeat Pattern",
+                "Repeat Horizontally", "Repeat Vertically",
+            ]
+            positions = ["Center", "Top", "Bottom", "Left", "Right"]
+            background_style = st.selectbox(
+                "Background Style",
+                styles,
+                index=styles.index(state.get("background_style", "Fill / Cover"))
+                if state.get("background_style", "Fill / Cover") in styles else 0,
+                key="editor_background_style",
+                help="Use Fill for photos, Fit for illustrations, and Repeat Pattern for seamless designs.",
+            )
+            pattern_size = st.slider(
+                "Pattern / Image Scale", 40, 700,
+                int(state.get("background_pattern_size", 220)), 10,
+                key="editor_pattern_size",
+            )
+            bg_position = st.selectbox(
+                "Background Position",
+                positions,
+                index=positions.index(state.get("background_position", "Center"))
+                if state.get("background_position", "Center") in positions else 0,
+                key="editor_background_position",
+            )
+            bg_brightness = st.slider(
+                "Background Brightness", 30, 130,
+                int(state.get("background_brightness", 100)), 5,
+                key="editor_background_brightness",
+            )
+            bg_blur = st.slider(
+                "Background Blur", 0, 12,
+                int(state.get("background_blur", 0)), 1,
+                key="editor_background_blur",
+            )
 
-            if apply_background:
+            if st.button(
+                "Apply Background Changes",
+                type="primary",
+                use_container_width=True,
+                key="apply_background_changes",
+            ):
                 state["background_style"] = background_style
                 state["background_pattern_size"] = pattern_size
                 state["background_position"] = bg_position
@@ -1838,10 +1852,6 @@ if view == "host":
                             state["background_image"] = encoded
                             state["background_mime"] = mime
                             state["background_image_hash"] = upload_hash
-                            st.success(
-                                f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
-                                f"to {compressed_bytes / 1024:.0f} KB."
-                            )
                         except Exception as exc:
                             st.error(f"Could not process that background image: {exc}")
                             return
@@ -1857,7 +1867,9 @@ if view == "host":
                     st.session_state.pop("host_background_upload", None)
                     st.rerun()
 
-        # 3) Editors use an explicit Apply button so color-picker values persist reliably.
+        # 3) Design editors. These controls are outside a form so the native
+        # browser color picker opens normally and text fields do not show the
+        # misleading “Press Enter to submit form” prompt.
         with st.expander("3. Design Editors", expanded=True):
             theme_colors = get_theme_colors(state)
             base_theme = (
@@ -1875,62 +1887,75 @@ if view == "host":
                 if isinstance(state.get("theme_overrides"), dict) else {}
             )
 
-            with st.form("design_editor_form", clear_on_submit=False):
-                new_title = st.text_input(
-                    "Game Title", value=state.get("title", "Survey Style Interactive Party Game")
-                )
-                new_subtitle = st.text_input(
-                    "Subtitle", value=state.get("subtitle", "Tournament Edition")
-                )
-                title_size = st.slider("Title Size", 24, 110, int(state.get("title_size", 64)))
-                subtitle_size = st.slider("Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)))
-                font_names = list(FONT_OPTIONS.keys())
-                title_font = st.selectbox(
-                    "Title Font", font_names,
-                    index=font_names.index(state.get("title_font", "Playfair Display"))
-                    if state.get("title_font") in font_names else 0,
-                )
-                body_font = st.selectbox(
-                    "Body Font", font_names,
-                    index=font_names.index(state.get("body_font", "Cormorant Garamond"))
-                    if state.get("body_font") in font_names else 1,
+            new_title = st.text_input(
+                "Game Title",
+                value=state.get("title", "Survey Style Interactive Party Game"),
+                key="editor_game_title",
+            )
+            new_subtitle = st.text_input(
+                "Subtitle",
+                value=state.get("subtitle", "Tournament Edition"),
+                key="editor_game_subtitle",
+            )
+            title_size = st.slider(
+                "Title Size", 24, 110, int(state.get("title_size", 64)),
+                key="editor_title_size",
+            )
+            subtitle_size = st.slider(
+                "Subtitle Size", 12, 56, int(state.get("subtitle_size", 24)),
+                key="editor_subtitle_size",
+            )
+            font_names = list(FONT_OPTIONS.keys())
+            title_font = st.selectbox(
+                "Title Font", font_names,
+                index=font_names.index(state.get("title_font", "Playfair Display"))
+                if state.get("title_font") in font_names else 0,
+                key="editor_title_font",
+            )
+            body_font = st.selectbox(
+                "Body Font", font_names,
+                index=font_names.index(state.get("body_font", "Cormorant Garamond"))
+                if state.get("body_font") in font_names else 1,
+                key="editor_body_font",
+            )
+
+            st.markdown("**Text + Panel Colors**")
+            title_color = st.color_picker(
+                "Title Color",
+                value=state.get("title_color", theme_colors["primary"]),
+                key="editor_title_color",
+            )
+            subtitle_color = st.color_picker(
+                "Subtitle Color",
+                value=state.get("subtitle_color", theme_colors["secondary"]),
+                key="editor_subtitle_color",
+            )
+            panel_color = st.color_picker(
+                "Center Panel Color",
+                value=state.get("panel_color", theme_colors["cream"]),
+                key="editor_panel_color",
+            )
+            panel_opacity = st.slider(
+                "Center Panel Opacity", 5, 95,
+                int(float(state.get("panel_opacity", 0.20)) * 100),
+                key="editor_panel_opacity",
+            ) / 100
+
+            st.markdown("**Theme Colors**")
+            new_overrides = {}
+            for label, color_key in THEME_COLOR_FIELDS:
+                new_overrides[color_key] = st.color_picker(
+                    label,
+                    value=overrides.get(color_key, base_theme.get(color_key, "#FFFFFF")),
+                    key=f"editor_theme_{color_key}",
                 )
 
-                st.markdown("**Text + Panel Colors**")
-                title_color = st.color_picker(
-                    "Title Color",
-                    value=state.get("title_color", theme_colors["primary"]),
-                    key="editor_title_color",
-                )
-                subtitle_color = st.color_picker(
-                    "Subtitle Color",
-                    value=state.get("subtitle_color", theme_colors["secondary"]),
-                    key="editor_subtitle_color",
-                )
-                panel_color = st.color_picker(
-                    "Center Panel Color",
-                    value=state.get("panel_color", theme_colors["cream"]),
-                    key="editor_panel_color",
-                )
-                panel_opacity = st.slider(
-                    "Center Panel Opacity", 5, 95,
-                    int(float(state.get("panel_opacity", 0.20)) * 100),
-                ) / 100
-
-                st.markdown("**Theme Colors**")
-                new_overrides = {}
-                for label, color_key in THEME_COLOR_FIELDS:
-                    new_overrides[color_key] = st.color_picker(
-                        label,
-                        value=overrides.get(color_key, base_theme.get(color_key, "#FFFFFF")),
-                        key=f"editor_theme_{color_key}",
-                    )
-
-                apply_design = st.form_submit_button(
-                    "Apply Design Changes", type="primary", use_container_width=True
-                )
-
-            if apply_design:
+            if st.button(
+                "Apply Design Changes",
+                type="primary",
+                use_container_width=True,
+                key="apply_design_changes",
+            ):
                 state.update({
                     "title": new_title,
                     "subtitle": new_subtitle,
