@@ -1055,6 +1055,34 @@ html, body, .stApp {{
     min-height: 100vh !important;
 }}
 
+/* Streamlit's outer viewport must own scrolling on desktop. */
+html,
+body {{
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}}
+
+.stApp {{
+    width: 100% !important;
+    min-height: 100% !important;
+    height: auto !important;
+}}
+
+[data-testid="stAppViewContainer"] {{
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+}}
+
+[data-testid="stMain"] {{
+    height: auto !important;
+    max-height: none !important;
+}}
+
 /*
    Center panel layout:
    The transparent panel is a full-height layer behind the content.
