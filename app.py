@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import random
@@ -7,11 +8,13 @@ import string
 import tempfile
 import time
 from contextlib import contextmanager
+from io import BytesIO
 from difflib import SequenceMatcher
 from typing import Dict, List, Tuple
 
 import pandas as pd
 import streamlit as st
+from PIL import Image, ImageOps
 from streamlit_autorefresh import st_autorefresh
 
 try:
@@ -390,6 +393,7 @@ def default_state():
         "panel_opacity": 0.20,
         "background_image": "",
         "background_mime": "image/png",
+        "background_image_hash": "",
         "background_style": "Fill / Cover",
         "background_pattern_size": 220,
         "background_position": "Center",
@@ -771,8 +775,32 @@ def load_questions_from_upload(uploaded_file):
     return build_questions_from_dataframe(pd.read_csv(uploaded_file))
 
 
-def encode_uploaded_image(uploaded_file):
-    return base64.b64encode(uploaded_file.getvalue()).decode("utf-8"), uploaded_file.type or "image/png"
+def encode_uploaded_image(uploaded_file, max_dimension=1600, quality=72):
+    """Resize and compress a background image before storing it in game state."""
+    raw_bytes = uploaded_file.getvalue()
+    upload_hash = hashlib.sha256(raw_bytes).hexdigest()
+
+    with Image.open(BytesIO(raw_bytes)) as source_image:
+        image = ImageOps.exif_transpose(source_image)
+
+        # Preserve transparency where useful; otherwise use efficient RGB WebP.
+        has_transparency = image.mode in ("RGBA", "LA") or (
+            image.mode == "P" and "transparency" in image.info
+        )
+        image = image.convert("RGBA" if has_transparency else "RGB")
+        image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+
+        output = BytesIO()
+        image.save(
+            output,
+            format="WEBP",
+            quality=quality,
+            method=4,
+            optimize=True,
+        )
+
+    encoded = base64.b64encode(output.getvalue()).decode("utf-8")
+    return encoded, "image/webp", upload_hash, len(raw_bytes), output.tell()
 
 
 def build_initial_matches(team_names, max_teams):
@@ -958,7 +986,7 @@ def inject_css(state):
             background-size: {bg_size} !important;
             background-repeat: {bg_repeat} !important;
             background-position: {bg_position} !important;
-            background-attachment: fixed !important;
+            background-attachment: scroll !important;
             filter: brightness({bg_brightness}%);
         """
     else:
@@ -981,19 +1009,25 @@ def inject_css(state):
 
 html, body, .stApp {{
     min-height: 100vh;
-    overflow-y: auto !important;
     color: var(--plum) !important;
     font-family: {body_font} !important;
 }}
 
 .stApp {{
-    background: {theme['paper']} !important;
+    position: relative !important;
+    isolation: isolate;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: transparent !important;
 }}
 
 .stApp::before {{
     content: "";
     position: fixed;
     inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     z-index: 0;
     pointer-events: none;
     {background_css}
@@ -1010,10 +1044,10 @@ html, body, .stApp {{
 }}
 
 [data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-[data-testid="stVerticalBlock"] {{
+[data-testid="stMain"] {{
     position: relative;
     z-index: 1;
+    background: transparent !important;
 }}
 
 [data-testid="stAppViewContainer"],
@@ -1023,23 +1057,37 @@ html, body, .stApp {{
 
 /*
    Center panel layout:
-   The transparent panel is painted as a background stripe, not an overlay.
-   Background paint cannot block or trap page scrolling.
+   The transparent panel is a full-height layer behind the content.
+   This avoids Streamlit shrinking the panel to only the content height.
 */
-[data-testid="stAppViewContainer"] {{
-    background:
-        linear-gradient(
-            90deg,
-            transparent 0 max(2rem, calc((100vw - 1120px) / 2)),
-            {panel_rgba} max(2rem, calc((100vw - 1120px) / 2)) calc(100vw - max(2rem, calc((100vw - 1120px) / 2))),
-            transparent calc(100vw - max(2rem, calc((100vw - 1120px) / 2))) 100%
-        ) !important;
+[data-testid="stMain"] {{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    position: relative !important;
+    overflow: visible !important;
+}}
+
+[data-testid="stMain"]::before {{
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1120px, calc(100vw - 4rem));
+    min-height: 100vh;
+    background: {panel_rgba};
+    box-shadow: 0 0 35px rgba(0,0,0,0.08);
+    pointer-events: none;
+    z-index: 1;
 }}
 
 .main .block-container,
 [data-testid="stMainBlockContainer"] {{
     position: relative;
     z-index: 2;
+    align-self: stretch !important;
     width: min(1120px, calc(100vw - 4rem)) !important;
     max-width: min(1120px, calc(100vw - 4rem)) !important;
     min-height: 100vh !important;
@@ -1055,8 +1103,7 @@ html, body, .stApp {{
 section[data-testid="stSidebar"] {{
     height: 100vh !important;
     max-height: 100vh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
 }}
 
 section[data-testid="stSidebar"] > div:first-child,
@@ -1069,64 +1116,30 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
 }}
 
 @media (max-width: 900px) {{
-    html, body, .stApp {{
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: hidden !important;
+    .stApp::before {{
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        background-attachment: scroll !important;
     }}
 
     [data-testid="stAppViewContainer"],
-    [data-testid="stMain"] {{
-        width: 100vw !important;
-        max-width: 100vw !important;
-        min-width: 0 !important;
-        background: var(--paper) !important;
-        overflow-x: hidden !important;
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"] {{
+        background-color: transparent !important;
     }}
 
-    [data-testid="stAppViewContainer"] {{
-        background: var(--paper) !important;
+    [data-testid="stMain"]::before {{
+        width: 100% !important;
     }}
 
     .main .block-container,
     [data-testid="stMainBlockContainer"] {{
-        width: 100vw !important;
-        max-width: 100vw !important;
-        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
         min-height: 100vh !important;
-        padding: 3.25rem 1rem 4rem 1rem !important;
-        margin: 0 !important;
-        box-sizing: border-box !important;
-    }}
-
-    .main-title {{
-        font-size: clamp(34px, 11vw, 48px) !important;
-        line-height: 1.05 !important;
-        margin-top: 1.25rem !important;
-        margin-bottom: 0.25rem !important;
-        max-width: 100% !important;
-    }}
-
-    .subtitle {{
-        font-size: 20px !important;
-        margin-bottom: 1.5rem !important;
-        max-width: 100% !important;
-    }}
-
-    .info-card,
-    .bracket-card,
-    .score-card,
-    .question-card,
-    .answer-card,
-    .team-card,
-    .winner-card {{
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }}
-
-    .stButton > button {{
-        width: 100% !important;
+        min-height: 100dvh !important;
+        padding: 1.5rem 1rem 4rem 1rem !important;
     }}
 }}
 
@@ -1336,7 +1349,7 @@ if view == "host":
         <span class="small-note"><a href="{player_url}" target="_self">Open player join page</a></span>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("Start New Game Session", use_container_width=True):
+    if st.button("Start New Game Session"):
         create_new_host_session()
         st.rerun()
 elif not has_game_code:
@@ -1379,7 +1392,9 @@ if page == "bracket":
 # -----------------------------
 
 if view == "player":
-    st_autorefresh(interval=1000, key="player_refresh")
+    # Refresh quickly only while the Fast Money countdown is active.
+    player_refresh_ms = 1000 if state.get("fast_money_started") else 3000
+    st_autorefresh(interval=player_refresh_ms, key="player_refresh")
     if not state.get("locked"):
         st.markdown('<div class="info-card">Create or join a team before the host locks the game.</div>', unsafe_allow_html=True)
         player_name = st.text_input("Your name")
@@ -1592,10 +1607,24 @@ if view == "host":
                 changed = True
 
         if bg_upload is not None:
-            encoded, mime = encode_uploaded_image(bg_upload)
-            state["background_image"] = encoded
-            state["background_mime"] = mime
-            changed = True
+            raw_upload = bg_upload.getvalue()
+            current_upload_hash = hashlib.sha256(raw_upload).hexdigest()
+
+            # Streamlit keeps file_uploader populated across reruns. Only process
+            # the file when it differs from the background already saved.
+            if current_upload_hash != state.get("background_image_hash", ""):
+                try:
+                    encoded, mime, upload_hash, original_bytes, compressed_bytes = encode_uploaded_image(bg_upload)
+                    state["background_image"] = encoded
+                    state["background_mime"] = mime
+                    state["background_image_hash"] = upload_hash
+                    changed = True
+                    st.success(
+                        f"Background optimized from {original_bytes / 1024 / 1024:.1f} MB "
+                        f"to {compressed_bytes / 1024:.0f} KB."
+                    )
+                except Exception as exc:
+                    st.error(f"Could not process that background image: {exc}")
 
         col_a, col_b = st.columns(2)
         with col_a:
@@ -1615,6 +1644,7 @@ if view == "host":
         if state.get("background_image") and st.button("Remove Background"):
             state["background_image"] = ""
             state["background_mime"] = "image/png"
+            state["background_image_hash"] = ""
             changed = True
 
         if changed:
